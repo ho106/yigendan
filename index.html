@@ -1,460 +1,880 @@
 <!DOCTYPE html>
 <html lang="zh-CN">
 <head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0" />
-<title>衣跟单</title>
-
-<style>
-:root {
-  --blue: #2f6df6;
-  --green: #18a058;
-  --orange: #ff7a1a;
-  --red: #e5484d;
-  --bg: #f5f6fa;
-  --card: #ffffff;
-  --text: #1f2937;
-  --muted: #7b8494;
-  --line: #e9edf5;
-}
-
-* {
-  box-sizing: border-box;
-}
-
-body {
-  margin: 0;
-  background: var(--bg);
-  font-family: -apple-system, BlinkMacSystemFont, "PingFang SC", "Microsoft YaHei", Arial, sans-serif;
-  color: var(--text);
-}
-
-.app {
-  max-width: 540px;
-  margin: 0 auto;
-  min-height: 100vh;
-  padding-bottom: 78px;
-}
-
-.header {
-  position: sticky;
-  top: 0;
-  z-index: 9;
-  background: #fff;
-  padding: 16px;
-  text-align: center;
-  font-size: 22px;
-  font-weight: 900;
-  box-shadow: 0 2px 12px rgba(0,0,0,.05);
-}
-
-.page {
-  display: none;
-  padding: 16px;
-}
-
-.page.active {
-  display: block;
-}
-
-.card {
-  background: var(--card);
-  border-radius: 18px;
-  padding: 16px;
-  margin: 14px 0;
-  box-shadow: 0 8px 24px rgba(30,41,59,.06);
-}
-
-.title {
-  font-size: 19px;
-  font-weight: 900;
-  margin-bottom: 12px;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-}
-
-.sub {
-  color: var(--muted);
-  font-size: 13px;
-}
-
-.grid2 {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 12px;
-}
-
-.stat {
-  border-radius: 18px;
-  color: #fff;
-  padding: 18px;
-  min-height: 112px;
-}
-
-.stat.blue {
-  background: linear-gradient(135deg,#4a8bff,#245df0);
-}
-
-.stat.orange {
-  background: linear-gradient(135deg,#ff9a2b,#ff4d0d);
-}
-
-.stat .num {
-  font-size: 36px;
-  font-weight: 900;
-  margin: 8px 0;
-}
-
-.quick {
-  display: grid;
-  grid-template-columns: repeat(4,1fr);
-  gap: 8px;
-  text-align: center;
-}
-
-.quick button {
-  background: #fff;
-  color: var(--text);
-  border: 0;
-  font-weight: 700;
-}
-
-.qicon {
-  width: 52px;
-  height: 52px;
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  margin: 0 auto 8px;
-  font-size: 25px;
-  background: #eef4ff;
-  color: var(--blue);
-}
-
-label {
-  font-size: 14px;
-  font-weight: 800;
-  display: block;
-  margin-top: 6px;
-}
-
-input,
-select,
-textarea {
-  width: 100%;
-  padding: 12px;
-  border: 1px solid #dbe1ea;
-  border-radius: 12px;
-  background: #fff;
-  font-size: 15px;
-  margin: 6px 0 12px;
-}
-
-textarea {
-  min-height: 92px;
-}
-
-button {
-  border: 0;
-  border-radius: 12px;
-  background: var(--blue);
-  color: #fff;
-  padding: 12px 14px;
-  font-size: 15px;
-  font-weight: 900;
-  margin: 4px 0;
-}
-
-.btn-green {
-  background: var(--green);
-}
-
-.btn-orange {
-  background: var(--orange);
-}
-
-.btn-red {
-  background: var(--red);
-}
-
-.btn-gray {
-  background: #eef2f7;
-  color: #1f2937;
-}
-
-.btn-small {
-  padding: 7px 10px;
-  font-size: 13px;
-  border-radius: 10px;
-}
-
-.row2 {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 8px;
-}
-
-.row3 {
-  display: grid;
-  grid-template-columns: 1fr 1fr 1fr;
-  gap: 8px;
-}
-
-.item {
-  background: #fafbfe;
-  border: 1px solid var(--line);
-  border-radius: 14px;
-  padding: 12px;
-  margin: 10px 0;
-}
-
-.item:active {
-  opacity: .75;
-}
-
-.tag {
-  display: inline-block;
-  border-radius: 999px;
-  padding: 5px 10px;
-  font-size: 12px;
-  font-weight: 900;
-}
-
-.ok {
-  background: #e8f8ef;
-  color: #159957;
-}
-
-.warn {
-  background: #fff2d6;
-  color: #a96a00;
-}
-
-.bad {
-  background: #ffe9ea;
-  color: #d9363e;
-}
-
-.table-wrap {
-  overflow: auto;
-}
-
-.table {
-  width: 100%;
-  border-collapse: collapse;
-  font-size: 13px;
-  min-width: 620px;
-}
-
-.table th,
-.table td {
-  border-bottom: 1px solid var(--line);
-  padding: 8px 6px;
-  text-align: left;
-  vertical-align: top;
-}
-
-.table th {
-  background: #fafafa;
-  color: #6b7280;
-}
-
-.progress {
-  height: 9px;
-  background: #e9edf5;
-  border-radius: 99px;
-  overflow: hidden;
-  margin: 8px 0;
-}
-
-.bar {
-  height: 100%;
-  background: var(--green);
-}
-
-.nav {
-  position: fixed;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background: #fff;
-  border-top: 1px solid #e5e7eb;
-  z-index: 10;
-  display: flex;
-  justify-content: center;
-}
-
-.nav-inner {
-  max-width: 540px;
-  width: 100%;
-  display: grid;
-  grid-template-columns: repeat(5,1fr);
-}
-
-.nav button {
-  background: #fff;
-  color: #8b95a5;
-  border-radius: 0;
-  padding: 8px 0;
-  font-size: 12px;
-}
-
-.nav button.active {
-  color: var(--blue);
-}
-
-.nav b {
-  display: block;
-  font-size: 22px;
-  line-height: 22px;
-}
-
-.empty {
-  color: #9aa2b1;
-  text-align: center;
-  padding: 20px;
-}
-
-.danger-text {
-  color: var(--red);
-  font-weight: 900;
-}
-</style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes">
+    <title>衣跟单 - 生产跟单系统</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent;
+        }
+        body {
+            margin: 0;
+            background: #f5f6fa;
+            font-family: -apple-system, BlinkMacSystemFont, "PingFang SC", "Microsoft YaHei", Arial, sans-serif;
+            color: #1f2937;
+        }
+        .app {
+            max-width: 540px;
+            margin: 0 auto;
+            min-height: 100vh;
+            padding-bottom: 78px;
+        }
+        .header {
+            position: sticky;
+            top: 0;
+            z-index: 9;
+            background: #fff;
+            padding: 16px;
+            text-align: center;
+            font-size: 22px;
+            font-weight: 900;
+            box-shadow: 0 2px 12px rgba(0,0,0,.05);
+        }
+        .page {
+            display: none;
+            padding: 16px;
+        }
+        .page.active {
+            display: block;
+        }
+        .card {
+            background: #ffffff;
+            border-radius: 18px;
+            padding: 16px;
+            margin: 14px 0;
+            box-shadow: 0 4px 12px rgba(0,0,0,.05);
+        }
+        .title {
+            font-size: 19px;
+            font-weight: 900;
+            margin-bottom: 12px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .sub {
+            color: #7b8494;
+            font-size: 13px;
+        }
+        .grid2 {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+        }
+        .stat {
+            border-radius: 18px;
+            color: #fff;
+            padding: 18px;
+            cursor: pointer;
+            transition: 0.2s;
+        }
+        .stat.blue {
+            background: linear-gradient(135deg,#4a8bff,#245df0);
+        }
+        .stat.orange {
+            background: linear-gradient(135deg,#ff9a2b,#ff4d0d);
+        }
+        .stat .num {
+            font-size: 36px;
+            font-weight: 900;
+            margin: 8px 0;
+        }
+        .quick {
+            display: grid;
+            grid-template-columns: repeat(4,1fr);
+            gap: 8px;
+            text-align: center;
+        }
+        .quick button {
+            background: transparent;
+            border: none;
+            font-weight: 700;
+            cursor: pointer;
+        }
+        .qicon {
+            width: 52px;
+            height: 52px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 8px;
+            font-size: 25px;
+            background: #eef4ff;
+            color: #2f6df6;
+        }
+        label {
+            font-size: 14px;
+            font-weight: 800;
+            display: block;
+            margin-top: 6px;
+        }
+        input, select, textarea {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #dbe1ea;
+            border-radius: 12px;
+            background: #fff;
+            font-size: 15px;
+            margin: 6px 0 12px;
+        }
+        button {
+            border: 0;
+            border-radius: 12px;
+            background: #2f6df6;
+            color: #fff;
+            padding: 12px 14px;
+            font-size: 15px;
+            font-weight: 900;
+            margin: 4px 0;
+            cursor: pointer;
+            transition: 0.1s;
+        }
+        button:active { opacity: 0.8; }
+        .btn-green { background: #18a058; }
+        .btn-orange { background: #ff7a1a; }
+        .btn-red { background: #e5484d; }
+        .btn-gray { background: #eef2f7; color: #1f2937; }
+        .btn-small {
+            padding: 6px 12px;
+            font-size: 12px;
+            border-radius: 30px;
+        }
+        .row2 {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 8px;
+        }
+        .item {
+            background: #fafbfe;
+            border: 1px solid #e9edf5;
+            border-radius: 14px;
+            padding: 12px;
+            margin: 10px 0;
+        }
+        .item-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 8px;
+            flex-wrap: wrap;
+            gap: 6px;
+        }
+        .tag {
+            display: inline-block;
+            border-radius: 999px;
+            padding: 4px 10px;
+            font-size: 12px;
+            font-weight: 900;
+        }
+        .status-active { background: #e8f8ef; color: #159957; }
+        .status-completed { background: #e9edf5; color: #4b5563; }
+        .status-cancelled { background: #ffe9ea; color: #d9363e; }
+        .table-wrap {
+            overflow-x: auto;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 13px;
+            min-width: 580px;
+        }
+        th, td {
+            border-bottom: 1px solid #e9edf5;
+            padding: 10px 6px;
+            text-align: left;
+            vertical-align: top;
+        }
+        th {
+            background: #fafafa;
+            color: #6b7280;
+        }
+        .nav {
+            position: fixed;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: #fff;
+            border-top: 1px solid #e5e7eb;
+            z-index: 10;
+            display: flex;
+            justify-content: center;
+        }
+        .nav-inner {
+            max-width: 540px;
+            width: 100%;
+            display: grid;
+            grid-template-columns: repeat(5,1fr);
+        }
+        .nav button {
+            background: #fff;
+            color: #8b95a5;
+            border-radius: 0;
+            padding: 8px 0;
+            font-size: 12px;
+        }
+        .nav button.active {
+            color: #2f6df6;
+        }
+        .nav b { font-size: 22px; line-height: 22px; display: block;}
+        .empty { color: #9aa2b1; text-align: center; padding: 20px; }
+        .danger-text { color: #e5484d; font-weight: 900; }
+        .flex-between { display: flex; justify-content: space-between; align-items: center; }
+        .mt-2 { margin-top: 8px; }
+        .toast-msg {
+            position: fixed; bottom: 80px; left: 50%; transform: translateX(-50%);
+            background: rgba(0,0,0,0.7); color: white; padding: 8px 16px;
+            border-radius: 40px; font-size: 13px; z-index: 200; pointer-events: none;
+        }
+    </style>
 </head>
-
 <body>
 <div class="app">
-  <div class="header">衣跟单</div>
+    <div class="header">衣跟单 · 生产版</div>
 
-  <!-- 首页 -->
-  <section id="home" class="page active">
-    <div class="grid2">
-      <div class="stat blue" onclick="showPage('orders')">
-        <div>指令单</div>
-        <div id="homeOrderCount" class="num">0</div>
-        <div>点击查看生产任务</div>
-      </div>
+    <!-- 首页 -->
+    <section id="home" class="page active">
+        <div class="grid2">
+            <div class="stat blue" onclick="showPage('orders')">
+                <div>指令单</div>
+                <div id="homeOrderCount" class="num">0</div>
+                <div>进行中 / 总数</div>
+            </div>
+            <div class="stat orange" onclick="showPage('purchaseSuggest')">
+                <div>采购建议</div>
+                <div id="homeNeedCount" class="num">0</div>
+                <div>待采购物料</div>
+            </div>
+        </div>
+        <div class="card">
+            <div class="title">快捷操作</div>
+            <div class="quick">
+                <button onclick="showPage('orders')"><div class="qicon">📋</div>新建指令单</button>
+                <button onclick="showPage('stock')"><div class="qicon">📥</div>入库/领料</button>
+                <button onclick="showPage('products')"><div class="qicon">👕</div>产品/BOM</button>
+                <button onclick="showPage('purchaseSuggest')"><div class="qicon">🛒</div>采购建议</button>
+            </div>
+        </div>
+        <div class="card">
+            <div class="title">进行中指令单 <a href="#" onclick="showPage('orders');return false;" style="font-size:13px;">全部→</a></div>
+            <div id="homeOrders"></div>
+        </div>
+        <div class="card">
+            <div class="title">备份/恢复</div>
+            <div class="row2">
+                <button class="btn-gray" onclick="exportData()">📁 导出备份</button>
+                <button class="btn-gray" onclick="importDataTrigger()">📂 导入恢复</button>
+            </div>
+            <input type="file" id="importFile" accept=".json" style="display:none" onchange="importData(this)"/>
+            <div class="sub">自动保存，异常时自动重建默认数据</div>
+        </div>
+    </section>
 
-      <div class="stat orange" onclick="showPage('warning')">
-        <div>缺料预警</div>
-        <div id="homeWarnCount" class="num">0</div>
-        <div>点击查看待采购物料</div>
-      </div>
-    </div>
+    <!-- 指令单列表页 -->
+    <section id="orders" class="page">
+        <div class="card">
+            <div class="title">新建生产指令单</div>
+            <label>选择货号</label>
+            <select id="orderProductSelect" onchange="renderSizeInputsForOrder()"></select>
+            <label>颜色</label>
+            <input id="orderColorInput" placeholder="例：浅灰色">
+            <div id="sizeInputsArea"></div>
+            <button onclick="createOrder()">✅ 创建指令单 (自动BOM快照)</button>
+        </div>
+        <div class="card">
+            <div class="title">指令单列表</div>
+            <div id="orderListContainer"></div>
+        </div>
+    </section>
 
-    <div class="card">
-      <div class="title">快捷操作</div>
+    <!-- 指令单详情 + 编辑/状态修改 -->
+    <section id="detail" class="page"><div id="detailBox"></div></section>
 
-      <div class="quick">
-        <button onclick="showPage('orders')">
-          <div class="qicon">＋</div>
-          新建
-        </button>
+    <!-- 采购建议汇总 -->
+    <section id="purchaseSuggest" class="page">
+        <div class="card">
+            <div class="title">📦 采购建议汇总</div>
+            <div id="suggestList"></div>
+            <button class="btn-green btn-small" onclick="refreshPurchaseSuggest()">刷新计算</button>
+        </div>
+    </section>
 
-        <button onclick="showPage('stock')">
-          <div class="qicon">↕</div>
-          入库
-        </button>
+    <!-- 库存管理（出库关联指令单 + 在途确认） -->
+    <section id="stock" class="page">
+        <div class="card">
+            <div class="title">出入库 / 在途登记</div>
+            <label>物料</label><select id="stockMaterialSelect"></select>
+            <label>操作类型</label>
+            <select id="stockOperType">
+                <option value="in">入库 (+库存)</option>
+                <option value="out">生产领料 (-库存)</option>
+                <option value="onway">登记采购在途</option>
+            </select>
+            <div id="orderSelectDiv" style="display:none;">
+                <label>关联指令单 (领料时必选)</label>
+                <select id="stockOrderSelect"></select>
+            </div>
+            <label>数量</label><input id="stockQtyInput" type="number" placeholder="正数" step="0.1">
+            <label>备注</label><input id="stockRemarkInput" placeholder="可选">
+            <button class="btn-green" onclick="submitStockOperation()">提交操作</button>
+        </div>
+        <div class="card">
+            <div class="title">库存总览 & 在途清单</div>
+            <input id="stockSearchInput" placeholder="搜索物料名" oninput="renderStockPage()">
+            <div id="stockListArea"></div>
+            <hr>
+            <div class="title">在途物料 (点击确认收货)</div>
+            <div id="inTransitListArea"></div>
+        </div>
+    </section>
 
-        <button onclick="showPage('products')">
-          <div class="qicon">👕</div>
-          产品
-        </button>
+    <!-- 产品 & BOM 管理 -->
+    <section id="products" class="page">
+        <div class="card">
+            <div class="title">产品管理</div>
+            <label>货号</label><input id="prodCode" placeholder="例: A001">
+            <label>品名</label><input id="prodName" placeholder="例: 圆领T恤">
+            <label>尺码(逗号分隔)</label><input id="prodSizes" placeholder="S,M,L,XL">
+            <button onclick="addOrUpdateProduct()">添加/更新产品</button>
+            <div id="productListDiv"></div>
+        </div>
+        <div class="card">
+            <div class="title">物料管理 & BOM配置</div>
+            <label>物料名称</label><input id="materialName" placeholder="例: 棉布">
+            <label>单位</label><input id="materialUnit" placeholder="米/件">
+            <button onclick="addMaterial()">添加物料</button>
+            <div id="materialListDiv"></div>
+            <hr>
+            <label>配置BOM (产品 → 物料单件用量)</label>
+            <select id="bomProductSelect"></select>
+            <select id="bomMaterialSelect"></select>
+            <input type="number" id="bomQty" placeholder="单件用量" step="0.01" style="width:100px;">
+            <button onclick="saveBomItem()">保存BOM项</button>
+            <div id="bomListDiv"></div>
+        </div>
+    </section>
 
-        <button onclick="showPage('bom')">
-          <div class="qicon">📦</div>
-          物料
-        </button>
-      </div>
-    </div>
+    <div class="nav"><div class="nav-inner">
+        <button onclick="showPage('home')"><b>🏠</b>首页</button>
+        <button onclick="showPage('orders')"><b>📋</b>指令单</button>
+        <button onclick="showPage('stock')"><b>📦</b>库存</button>
+        <button onclick="showPage('products')"><b>⚙️</b>产品</button>
+        <button onclick="showPage('purchaseSuggest')"><b>🛒</b>采购</button>
+    </div></div>
+</div>
 
-    <div class="card">
-      <div class="title">
-        最近指令单
-        <button class="btn-small btn-gray" onclick="showPage('orders')">全部</button>
-      </div>
-      <div id="homeOrders"></div>
-    </div>
-  </section>
+<script>
+    // ---------- 安全转义 ----------
+    function escapeHtml(str) {
+        if (!str) return '';
+        return str.replace(/[&<>]/g, function(m) {
+            if (m === '&') return '&amp;';
+            if (m === '<') return '&lt;';
+            if (m === '>') return '&gt;';
+            return m;
+        }).replace(/[\uD800-\uDBFF][\uDC00-\uDFFF]/g, function(c) {
+            return c;
+        });
+    }
 
-  <!-- 指令单 -->
-  <section id="orders" class="page">
-    <div class="card">
-      <div class="title">新建生产指令单</div>
+    // ---------- 数据模型 ----------
+    let appData = {
+        products: [],      // {id, code, name, sizesArr}
+        materials: [],     // {id, name, unit}
+        bom: [],           // {productId, materialId, quantityPerUnit}
+        orders: [],        // {id, productId, productCode, productName, color, sizeQuantities, status, createdAt, bomSnapshot}
+        stockTransactions: []  // {id, materialId, type, change, orderId, remark, timestamp}
+    };
+    let inTransitLogs = [];    // {id, materialId, quantity, remark, timestamp, received}
 
-      <label>选择货号</label>
-      <select id="orderProduct" onchange="renderSizeInputs()"></select>
+    // 存储操作
+    function saveData() {
+        try {
+            localStorage.setItem('yigen_v3', JSON.stringify({data: appData, inTransit: inTransitLogs}));
+        } catch(e) { alert("存储失败，请清理空间"); }
+    }
 
-      <label>颜色</label>
-      <input id="orderColor" placeholder="例如：粉色" />
+    function loadData() {
+        try {
+            let raw = localStorage.getItem('yigen_v3');
+            if (raw) {
+                let obj = JSON.parse(raw);
+                appData = obj.data || { products: [], materials: [], bom: [], orders: [], stockTransactions: [] };
+                inTransitLogs = obj.inTransit || [];
+                if (!appData.products) appData.products = [];
+                if (!appData.bom) appData.bom = [];
+                if (!appData.orders) appData.orders = [];
+                if (!appData.stockTransactions) appData.stockTransactions = [];
+                if (!appData.materials) appData.materials = [];
+            } else {
+                initDefaultData();
+            }
+        } catch(e) {
+            console.error(e);
+            initDefaultData();
+        }
+        refreshAllUI();
+    }
 
-      <div id="sizeInputs"></div>
+    function initDefaultData() {
+        appData = { products: [], materials: [], bom: [], orders: [], stockTransactions: [] };
+        inTransitLogs = [];
+        let p1 = { id: "p1", code: "A001", name: "女士打底衫", sizesArr: ["S","M","L"] };
+        let p2 = { id: "p2", code: "B002", name: "男士Polo", sizesArr: ["M","L","XL"] };
+        appData.products = [p1, p2];
+        let m1 = { id: "m1", name: "棉布", unit: "米" };
+        let m2 = { id: "m2", name: "拉链", unit: "条" };
+        appData.materials = [m1, m2];
+        appData.bom = [
+            { productId: "p1", materialId: "m1", quantityPerUnit: 0.8 },
+            { productId: "p1", materialId: "m2", quantityPerUnit: 1 },
+            { productId: "p2", materialId: "m1", quantityPerUnit: 1.2 }
+        ];
+        appData.stockTransactions = [{ id: "t1", materialId: "m1", type: "in", change: 200, orderId: null, remark: "期初", timestamp: Date.now() }];
+        saveData();
+    }
 
-      <button onclick="createOrder()">创建指令单并自动计算物料</button>
-    </div>
+    function refreshAllUI() {
+        renderHomePage();
+        renderOrderList();
+        renderProductsAndBOM();
+        renderStockPage();
+        renderPurchaseSuggest();
+        fillMaterialSelects();
+        fillOrderSelectForStock();
+    }
 
-    <div class="card">
-      <div class="title">指令单列表</div>
-      <div id="orderList"></div>
-    </div>
-  </section>
+    // 显示页面
+    function showPage(pageId) {
+        document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+        document.getElementById(pageId).classList.add('active');
+        if (pageId === 'orders') renderOrderList();
+        if (pageId === 'products') renderProductsAndBOM();
+        if (pageId === 'stock') { renderStockPage(); fillOrderSelectForStock(); }
+        if (pageId === 'purchaseSuggest') renderPurchaseSuggest();
+        if (pageId === 'home') renderHomePage();
+    }
 
-  <!-- 指令单详情 -->
-  <section id="detail" class="page">
-    <div id="detailBox"></div>
-  </section>
+    // 首页
+    function renderHomePage() {
+        let activeOrders = appData.orders.filter(o => o.status === 'active').length;
+        let totalOrders = appData.orders.length;
+        document.getElementById('homeOrderCount').innerHTML = `${activeOrders}/${totalOrders}`;
+        let needMaterials = computePurchaseNeeds().reduce((acc, cur) => acc + cur.shortage, 0);
+        document.getElementById('homeNeedCount').innerHTML = needMaterials.toFixed(1);
+        let recent = [...appData.orders].reverse().slice(0, 3);
+        let html = recent.map(o => `<div class="item"><b>${escapeHtml(o.productCode)} ${escapeHtml(o.color)}</b> <span class="tag status-${o.status}">${o.status==='active'?'进行中':(o.status==='completed'?'已完成':'已取消')}</span><div>${Object.entries(o.sizeQuantities).map(([k,v])=>`${k}:${v}`).join(' ')}</div></div>`).join('');
+        document.getElementById('homeOrders').innerHTML = html || '<div class="empty">暂无指令单</div>';
+    }
 
-  <!-- 缺料预警 -->
-  <section id="warning" class="page">
-    <div class="card">
-      <div class="title">缺料预警</div>
-      <div id="warningList"></div>
-    </div>
-  </section>
+    // 指令单列表
+    function renderOrderList() {
+        let container = document.getElementById('orderListContainer');
+        if (!container) return;
+        let ordersHtml = appData.orders.map(order => {
+            let sizeText = Object.entries(order.sizeQuantities).map(([s,c]) => `${s}×${c}`).join(' ');
+            return `<div class="item">
+                <div class="item-header">
+                    <strong>${escapeHtml(order.productCode)} / ${escapeHtml(order.color)}</strong>
+                    <div>
+                        <select onchange="changeOrderStatus('${order.id}',this.value)">
+                            <option ${order.status==='active'?'selected':''} value="active">进行中</option>
+                            <option ${order.status==='completed'?'selected':''} value="completed">已完成</option>
+                            <option ${order.status==='cancelled'?'selected':''} value="cancelled">已取消</option>
+                        </select>
+                        <button class="btn-small btn-gray" onclick="deleteOrder('${order.id}')">🗑️</button>
+                        <button class="btn-small" onclick="viewOrderDetail('${order.id}')">详情</button>
+                    </div>
+                </div>
+                <div>${escapeHtml(sizeText)}</div>
+                <div class="sub">创建: ${new Date(order.createdAt).toLocaleDateString()}</div>
+            </div>`;
+        }).join('');
+        container.innerHTML = ordersHtml || '<div class="empty">暂无指令单，点击上方新建</div>';
+        let select = document.getElementById('orderProductSelect');
+        if (select) {
+            select.innerHTML = appData.products.map(p => `<option value="${p.id}" data-sizes='${JSON.stringify(p.sizesArr)}'>${escapeHtml(p.code)} - ${escapeHtml(p.name)}</option>`).join('');
+            renderSizeInputsForOrder();
+        }
+    }
 
-  <!-- 库存 -->
-  <section id="stock" class="page">
-    <div class="card">
-      <div class="title">库存操作</div>
+    function renderSizeInputsForOrder() {
+        let select = document.getElementById('orderProductSelect');
+        let product = appData.products.find(p => p.id === select.value);
+        if (!product) { document.getElementById('sizeInputsArea').innerHTML = ''; return; }
+        let sizes = product.sizesArr || [];
+        let div = document.getElementById('sizeInputsArea');
+        div.innerHTML = sizes.map(s => `<label>${escapeHtml(s)}码 数量</label><input type="number" id="size_${s}" placeholder="0" value="0" min="0" step="1">`).join('');
+    }
 
-      <label>选择物料</label>
-      <select id="stockMaterial"></select>
+    function createOrder() {
+        let productId = document.getElementById('orderProductSelect').value;
+        let product = appData.products.find(p => p.id === productId);
+        if (!product) { alert("请选择产品"); return; }
+        let color = document.getElementById('orderColorInput').value.trim();
+        if (!color) { alert("请填写颜色"); return; }
+        let sizeQuantities = {};
+        for (let s of product.sizesArr) {
+            let qty = parseInt(document.getElementById(`size_${s}`)?.value || 0);
+            if (qty > 0) sizeQuantities[s] = qty;
+        }
+        if (Object.keys(sizeQuantities).length === 0) { alert("至少填写一个尺码数量"); return; }
+        // BOM快照
+        let bomItems = appData.bom.filter(b => b.productId === productId);
+        let snapshot = [];
+        for (let b of bomItems) {
+            let material = appData.materials.find(m => m.id === b.materialId);
+            if (material) {
+                let totalReq = 0;
+                for (let qty of Object.values(sizeQuantities)) totalReq += qty * b.quantityPerUnit;
+                snapshot.push({
+                    materialId: material.id,
+                    materialName: material.name,
+                    unit: material.unit,
+                    totalRequired: totalReq
+                });
+            }
+        }
+        let newOrder = {
+            id: Date.now() + '' + Math.random(),
+            productId: product.id,
+            productCode: product.code,
+            productName: product.name,
+            color: color,
+            sizeQuantities: sizeQuantities,
+            status: 'active',
+            createdAt: Date.now(),
+            bomSnapshot: snapshot
+        };
+        appData.orders.push(newOrder);
+        saveData();
+        renderOrderList();
+        renderHomePage();
+        renderPurchaseSuggest();
+        showPage('orders');
+        showToast("指令单已创建，BOM快照已保存");
+    }
 
-      <label>类型</label>
-      <select id="stockType">
-        <option value="in">采购到货入库</option>
-        <option value="out">生产领料出库</option>
-        <option value="onway">登记已下单未到</option>
-      </select>
+    function changeOrderStatus(orderId, newStatus) {
+        let order = appData.orders.find(o => o.id === orderId);
+        if (order) { order.status = newStatus; saveData(); renderOrderList(); renderHomePage(); renderPurchaseSuggest(); showToast(`状态已变更为 ${newStatus}`); }
+    }
 
-      <label>数量</label>
-      <input id="stockQty" type="number" placeholder="请输入数量" />
+    function deleteOrder(orderId) {
+        if (confirm("删除指令单不可恢复，是否继续？")) {
+            appData.orders = appData.orders.filter(o => o.id !== orderId);
+            saveData(); renderOrderList(); renderHomePage(); renderPurchaseSuggest(); showToast("已删除");
+        }
+    }
 
-      <label>备注</label>
-      <input id="stockRemark" placeholder="例如：第一批到货" />
+    function viewOrderDetail(orderId) {
+        let order = appData.orders.find(o => o.id === orderId);
+        if (!order) return;
+        let relatedOut = appData.stockTransactions.filter(t => t.orderId === orderId && t.type === 'out');
+        let recHtml = relatedOut.map(r => {
+            let mat = appData.materials.find(m => m.id === r.materialId);
+            return `<div>- ${escapeHtml(mat?.name || r.materialId)} 领用 ${r.change} ${r.remark || ''}</div>`;
+        }).join('');
+        if (!recHtml) recHtml = '<div class="empty">暂无领料出库记录</div>';
+        let html = `<div class="card">
+            <div class="title">指令单详情 <button class="btn-small btn-gray" onclick="showPage('orders')">←返回</button></div>
+            <div><strong>货号:</strong> ${escapeHtml(order.productCode)}</div>
+            <div><strong>颜色:</strong> ${escapeHtml(order.color)}</div>
+            <div><strong>状态:</strong> ${order.status}</div>
+            <div><strong>尺码明细:</strong> ${JSON.stringify(order.sizeQuantities)}</div>
+            <div class="title mt-2">📌 BOM快照 (创建时锁定)</div>
+            <div class="table-wrap"><table><tr><th>物料</th><th>单位</th><th>总需求</th></tr>
+            ${order.bomSnapshot.map(b => `<tr><td>${escapeHtml(b.materialName)}</td><td>${escapeHtml(b.unit)}</td><td>${b.totalRequired.toFixed(2)}</td></tr>`).join('')}
+            </table></div>
+            <div class="title mt-2">📊 领料记录</div>
+            <div id="detailStockRecords">${recHtml}</div>
+        </div>`;
+        document.getElementById('detailBox').innerHTML = html;
+        showPage('detail');
+    }
 
-      <button class="btn-green" onclick="stockOperation()">提交操作</button>
-    </div>
+    // 库存计算
+    function getOnHandStock(materialId) {
+        let totalIn = appData.stockTransactions.filter(t => t.materialId === materialId && t.type === 'in').reduce((s, t) => s + t.change, 0);
+        let totalOut = appData.stockTransactions.filter(t => t.materialId === materialId && t.type === 'out').reduce((s, t) => s + t.change, 0);
+        return totalIn - totalOut;
+    }
+    function getInTransit(materialId) {
+        return inTransitLogs.filter(l => l.materialId === materialId && !l.received).reduce((s, l) => s + l.quantity, 0);
+    }
 
-    <div class="card">
-      <div class="title">库存总览</div>
-      <input id="stockSearch" placeholder="搜索物料 / 规格" oninput="renderStock()" />
-      <div id="stockList"></div>
-    </div>
-  </section>
+    function fillMaterialSelects() {
+        let sel = document.getElementById('stockMaterialSelect');
+        if (sel) sel.innerHTML = appData.materials.map(m => `<option value="${m.id}">${escapeHtml(m.name)} (${escapeHtml(m.unit)})</option>`).join('');
+    }
+    function fillOrderSelectForStock() {
+        let activeOrders = appData.orders.filter(o => o.status === 'active');
+        let sel = document.getElementById('stockOrderSelect');
+        if (sel) sel.innerHTML = activeOrders.map(o => `<option value="${o.id}">${escapeHtml(o.productCode)} / ${escapeHtml(o.color)}</option>`).join('');
+    }
 
-  <!-- 产品 -->
-  <section id="products" class="page">
-    <div class="card">
-      <div class="title">产品管理</div>
+    document.getElementById('stockOperType')?.addEventListener('change', function() {
+        let div = document.getElementById('orderSelectDiv');
+        div.style.display = this.value === 'out' ? 'block' : 'none';
+    });
 
-      <label>货号</label>
-      <input id="pCode" placeholder="例如 A001" />
+    function submitStockOperation() {
+        let materialId = document.getElementById('stockMaterialSelect').value;
+        let type = document.getElementById('stockOperType').value;
+        let qty = parseFloat(document.getElementById('stockQtyInput').value);
+        if (isNaN(qty) || qty <= 0) { alert("请输入正数量"); return; }
+        let remark = document.getElementById('stockRemarkInput').value;
+        let orderId = null;
 
-      <label>品名</label>
-      <input id="pName" placeholder="例如 女童泳衣" />
+        if (type === 'out') {
+            orderId = document.getElementById('stockOrderSelect').value;
+            if (!orderId) { alert("生产领料必须选择指令单"); return; }
+            let order = appData.orders.find(o => o.id === orderId);
+            if (!order || order.status !== 'active') { alert("只能为进行中指令单领料"); return; }
+            let onHand = getOnHandStock(materialId);
+            if (onHand < qty) { alert(`在手库存不足！当前在手: ${onHand}`); return; }
+        }
 
-      <label>尺码，用逗号分隔</label>
-      <input id="p
+        if (type === 'onway') {
+            inTransitLogs.push({
+                id: Date.now() + '' + Math.random(),
+                materialId: materialId,
+                quantity: qty,
+                remark: remark,
+                timestamp: Date.now(),
+                received: false
+            });
+            showToast(`已登记在途 ${qty}`);
+        } else {
+            let transaction = {
+                id: Date.now() + '' + Math.random(),
+                materialId, type, change: qty, orderId, remark, timestamp: Date.now()
+            };
+            appData.stockTransactions.push(transaction);
+            showToast(`${type === 'in' ? '入库' : '领料出库'}成功`);
+        }
+        saveData();
+        renderStockPage();
+        renderPurchaseSuggest();
+        document.getElementById('stockQtyInput').value = '';
+    }
+
+    // 在途确认收货
+    function confirmReceive(transitId) {
+        let transit = inTransitLogs.find(t => t.id === transitId);
+        if (transit && !transit.received) {
+            transit.received = true;
+            // 生成入库记录
+            let transaction = {
+                id: Date.now() + '' + Math.random(),
+                materialId: transit.materialId,
+                type: 'in',
+                change: transit.quantity,
+                orderId: null,
+                remark: `确认收货: ${transit.remark || ''}`,
+                timestamp: Date.now()
+            };
+            appData.stockTransactions.push(transaction);
+            saveData();
+            renderStockPage();
+            renderPurchaseSuggest();
+            showToast("已确认收货并增加库存");
+        }
+    }
+
+    function renderStockPage() {
+        let search = document.getElementById('stockSearchInput')?.value.toLowerCase() || '';
+        let filtered = appData.materials.filter(m => m.name.toLowerCase().includes(search));
+        let html = filtered.map(m => {
+            let onHand = getOnHandStock(m.id);
+            let onWay = getInTransit(m.id);
+            return `<div class="item"><div><strong>${escapeHtml(m.name)}</strong> (${escapeHtml(m.unit)})</div><div>在手: ${onHand} | 在途: ${onWay}</div></div>`;
+        }).join('');
+        document.getElementById('stockListArea').innerHTML = html || '<div class="empty">暂无物料</div>';
+
+        // 在途清单
+        let transitList = inTransitLogs.filter(t => !t.received);
+        let transitHtml = transitList.map(t => {
+            let mat = appData.materials.find(m => m.id === t.materialId);
+            return `<div class="item flex-between"><span>${escapeHtml(mat?.name || t.materialId)} 在途 ${t.quantity} ${mat?.unit || ''}</span><button class="btn-small btn-green" onclick="confirmReceive('${t.id}')">确认收货</button></div>`;
+        }).join('');
+        document.getElementById('inTransitListArea').innerHTML = transitHtml || '<div class="empty">无在途物料</div>';
+        fillMaterialSelects();
+    }
+
+    // 采购建议
+    function computePurchaseNeeds() {
+        let needMap = new Map();
+        for (let order of appData.orders.filter(o => o.status === 'active')) {
+            for (let snap of order.bomSnapshot) {
+                let curr = needMap.get(snap.materialId) || { materialId: snap.materialId, name: snap.materialName, unit: snap.unit, needQty: 0 };
+                curr.needQty += snap.totalRequired;
+                needMap.set(snap.materialId, curr);
+            }
+        }
+        let results = [];
+        for (let [mid, req] of needMap.entries()) {
+            let onHand = getOnHandStock(mid);
+            let onWay = getInTransit(mid);
+            let shortage = Math.max(0, req.needQty - (onHand + onWay));
+            if (shortage > 0) results.push({ materialName: req.name, unit: req.unit, requiredTotal: req.needQty, onHand, onWay, shortage });
+        }
+        return results;
+    }
+    function renderPurchaseSuggest() {
+        let needs = computePurchaseNeeds();
+        let html = needs.map(n => `<div class="item"><div><strong>${escapeHtml(n.materialName)}</strong> (${escapeHtml(n.unit)})</div><div>总需求: ${n.requiredTotal.toFixed(2)} | 在手:${n.onHand} 在途:${n.onWay}</div><div class="danger-text">建议采购: ${n.shortage.toFixed(2)}</div></div>`).join('');
+        document.getElementById('suggestList').innerHTML = html || '<div class="empty">所有物料充足 ✅</div>';
+        let totalShort = needs.reduce((s, n) => s + n.shortage, 0);
+        document.getElementById('homeNeedCount').innerHTML = totalShort.toFixed(1);
+    }
+    function refreshPurchaseSuggest() { renderPurchaseSuggest(); }
+
+    // 产品物料管理（含删除前检查）
+    function renderProductsAndBOM() {
+        let prodDiv = document.getElementById('productListDiv');
+        prodDiv.innerHTML = appData.products.map(p => `<div class="item"><div class="flex-between"><strong>${escapeHtml(p.code)} - ${escapeHtml(p.name)}</strong><div><button class="btn-small btn-gray" onclick="editProduct('${p.id}')">✏️</button><button class="btn-small btn-red" onclick="deleteProduct('${p.id}')">❌</button></div></div><div>尺码: ${p.sizesArr.join(',')}</div></div>`).join('');
+        let matDiv = document.getElementById('materialListDiv');
+        matDiv.innerHTML = appData.materials.map(m => `<div class="item"><div class="flex-between"><span>${escapeHtml(m.name)} (${escapeHtml(m.unit)})</span><button class="btn-small btn-gray" onclick="deleteMaterial('${m.id}')">删除物料</button></div></div>`).join('');
+        let prodSel = document.getElementById('bomProductSelect');
+        let matSel = document.getElementById('bomMaterialSelect');
+        if (prodSel) prodSel.innerHTML = appData.products.map(p => `<option value="${p.id}">${escapeHtml(p.code)}</option>`).join('');
+        if (matSel) matSel.innerHTML = appData.materials.map(m => `<option value="${m.id}">${escapeHtml(m.name)}</option>`).join('');
+        renderBomList();
+    }
+
+    function addOrUpdateProduct() {
+        let code = document.getElementById('prodCode').value.trim();
+        let name = document.getElementById('prodName').value.trim();
+        let sizesStr = document.getElementById('prodSizes').value.trim();
+        if (!code || !name || !sizesStr) { alert("请完整填写"); return; }
+        if (appData.products.some(p => p.code === code)) { alert("货号已存在，请使用不同货号"); return; }
+        let sizesArr = sizesStr.split(/[,，]+/).map(s => s.trim());
+        let newId = "p" + Date.now();
+        appData.products.push({ id: newId, code, name, sizesArr });
+        saveData(); renderProductsAndBOM(); fillMaterialSelects(); renderOrderList();
+        showToast("产品已添加");
+    }
+
+    function deleteProduct(id) {
+        let product = appData.products.find(p => p.id === id);
+        if (!product) return;
+        let activeOrders = appData.orders.some(o => o.productId === id && o.status === 'active');
+        if (activeOrders) { alert("该产品存在进行中的指令单，请先完成或取消指令单后再删除产品。"); return; }
+        if (confirm("删除产品会同时删除相关BOM配置，历史指令单数据保留但货号可能失效")) {
+            appData.products = appData.products.filter(p => p.id !== id);
+            appData.bom = appData.bom.filter(b => b.productId !== id);
+            saveData(); renderProductsAndBOM(); renderOrderList();
+        }
+    }
+
+    function editProduct(id) {
+        let p = appData.products.find(p => p.id === id);
+        if (p) {
+            document.getElementById('prodCode').value = p.code;
+            document.getElementById('prodName').value = p.name;
+            document.getElementById('prodSizes').value = p.sizesArr.join(',');
+            deleteProduct(id);
+        }
+    }
+
+    function addMaterial() {
+        let name = document.getElementById('materialName').value.trim();
+        let unit = document.getElementById('materialUnit').value.trim();
+        if (!name || !unit) return;
+        appData.materials.push({ id: "m" + Date.now(), name, unit });
+        saveData(); renderProductsAndBOM(); fillMaterialSelects();
+    }
+
+    function deleteMaterial(id) {
+        if (confirm("删除物料将影响BOM, 历史库存记录保留但引用丢失")) {
+            appData.materials = appData.materials.filter(m => m.id !== id);
+            appData.bom = appData.bom.filter(b => b.materialId !== id);
+            saveData(); renderProductsAndBOM(); fillMaterialSelects();
+        }
+    }
+
+    function saveBomItem() {
+        let productId = document.getElementById('bomProductSelect').value;
+        let materialId = document.getElementById('bomMaterialSelect').value;
+        let qty = parseFloat(document.getElementById('bomQty').value);
+        if (isNaN(qty) || qty <= 0) { alert("请输入正数用量"); return; }
+        let existing = appData.bom.find(b => b.productId === productId && b.materialId === materialId);
+        if (existing) existing.quantityPerUnit = qty;
+        else appData.bom.push({ productId, materialId, quantityPerUnit: qty });
+        saveData(); renderBomList(); showToast("BOM已保存");
+    }
+
+    function renderBomList() {
+        let container = document.getElementById('bomListDiv');
+        let list = appData.bom.map(b => {
+            let prod = appData.products.find(p => p.id === b.productId);
+            let mat = appData.materials.find(m => m.id === b.materialId);
+            return `<div class="item">${escapeHtml(prod?.code || '?')} → ${escapeHtml(mat?.name || '?')} 用量: ${b.quantityPerUnit} ${escapeHtml(mat?.unit || '')} <button class="btn-small btn-gray" onclick="deleteBomItem('${b.productId}','${b.materialId}')">删除</button></div>`;
+        }).join('');
+        container.innerHTML = list || '<div class="empty">暂无BOM配置</div>';
+    }
+    function deleteBomItem(pid, mid) {
+        appData.bom = appData.bom.filter(b => !(b.productId === pid && b.materialId === mid));
+        saveData(); renderBomList();
+    }
+
+    // 备份恢复
+    function exportData() {
+        let exportObj = { data: appData, inTransit: inTransitLogs, version: 3 };
+        let str = JSON.stringify(exportObj);
+        let blob = new Blob([str], { type: "application/json" });
+        let a = document.createElement('a');
+        a.href = URL.createObjectURL(blob);
+        a.download = `yigen_backup_${new Date().toISOString().slice(0,19)}.json`;
+        a.click();
+    }
+    function importDataTrigger() { document.getElementById('importFile').click(); }
+    function importData(fileInput) {
+        let file = fileInput.files[0];
+        if (!file) return;
+        let reader = new FileReader();
+        reader.onload = e => {
+            try {
+                let obj = JSON.parse(e.target.result);
+                if (obj.data && obj.inTransit) {
+                    appData = obj.data; inTransitLogs = obj.inTransit;
+                    saveData(); loadData(); showToast("恢复成功");
+                } else throw new Error();
+            } catch (ex) { alert("备份文件无效"); }
+        };
+        reader.readAsText(file);
+    }
+    function showToast(msg) {
+        let div = document.createElement('div'); div.className = 'toast-msg'; div.innerText = msg;
+        document.body.appendChild(div); setTimeout(() => div.remove(), 1800);
+    }
+
+    // 全局函数暴露
+    window.showPage = showPage;
+    window.changeOrderStatus = changeOrderStatus;
+    window.deleteOrder = deleteOrder;
+    window.viewOrderDetail = viewOrderDetail;
+    window.createOrder = createOrder;
+    window.submitStockOperation = submitStockOperation;
+    window.addOrUpdateProduct = addOrUpdateProduct;
+    window.addMaterial = addMaterial;
+    window.saveBomItem = saveBomItem;
+    window.deleteProduct = deleteProduct;
+    window.deleteMaterial = deleteMaterial;
+    window.deleteBomItem = deleteBomItem;
+    window.renderSizeInputsForOrder = renderSizeInputsForOrder;
+    window.exportData = exportData;
+    window.importDataTrigger = importDataTrigger;
+    window.importData = importData;
+    window.refreshPurchaseSuggest = refreshPurchaseSuggest;
+    window.confirmReceive = confirmReceive;
+    window.editProduct = editProduct;
+
+    window.onload = () => { loadData(); };
+</script>
+</body>
+</html>
+```

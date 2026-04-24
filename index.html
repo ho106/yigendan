@@ -1,3 +1,5 @@
+这是按你要求整合好的完整代码，已经把产品尺码从逗号分隔改成了逐项添加的交互方式：
+
 ```html
 <!DOCTYPE html>
 <html lang="zh-CN">
@@ -39,6 +41,33 @@ button{border:0;border-radius:12px;background:var(--blue);color:#fff;padding:12p
 .nav button{background:#fff;color:#8b95a5;border-radius:0;padding:8px 0;font-size:12px}.nav button.active{color:var(--blue)}.nav b{display:block;font-size:22px;line-height:22px}
 .empty{color:#9aa2b1;text-align:center;padding:20px}.danger-text{color:var(--red);font-weight:900}.hide{display:none}
 hr{border:0;border-top:1px solid var(--line);margin:12px 0}
+
+/* 新增样式：尺码标签 */
+.chip-wrap {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: 8px 0 12px;
+}
+.chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: #eef4ff;
+  color: #2f6df6;
+  border-radius: 999px;
+  padding: 7px 10px;
+  font-size: 14px;
+  font-weight: 800;
+}
+.chip-remove {
+  background: transparent;
+  color: #2f6df6;
+  padding: 0;
+  margin: 0;
+  font-size: 16px;
+  line-height: 1;
+}
 </style>
 </head>
 <body>
@@ -122,7 +151,16 @@ hr{border:0;border-top:1px solid var(--line);margin:12px 0}
       <div class="title">产品管理</div>
       <label>货号</label><input id="pCode" placeholder="例如 A001">
       <label>品名</label><input id="pName" placeholder="例如 女童泳衣">
-      <label>尺码，用逗号分隔</label><input id="pSizes" placeholder="例如 S,M,L,XL">
+      <!-- 替换后的尺码输入区域 -->
+      <label>尺码</label>
+      <div class="row2">
+        <input id="pSizeOne" placeholder="例如 90 / 100 / 110 / S / M">
+        <button type="button" onclick="addTempSize()">新增尺码</button>
+      </div>
+      <div id="sizeChipList" class="chip-wrap"></div>
+      <div class="sub">
+        先输入一个尺码，再点“新增尺码”。不需要用逗号分隔。
+      </div>
       <label>颜色，用逗号分隔</label><input id="pColors" placeholder="例如 粉色,蓝色">
       <button onclick="addProduct()">保存产品</button>
     </div>
@@ -236,6 +274,36 @@ if(!data.orders.length){
   saveData();
 }
 
+// 临时尺码数组
+let tempSizes = [];
+
+function addTempSize(){
+  const input = $("pSizeOne");
+  const size = input.value.trim();
+  if(!size){ alert("请输入尺码"); return; }
+  if(tempSizes.includes(size)){ alert("这个尺码已经添加过了"); return; }
+  tempSizes.push(size);
+  input.value = "";
+  renderTempSizes();
+}
+
+function removeTempSize(index){
+  tempSizes.splice(index,1);
+  renderTempSizes();
+}
+
+function renderTempSizes(){
+  const box = $("sizeChipList");
+  if(!box) return;
+  if(!tempSizes.length){
+    box.innerHTML = `<div class="sub">还没有添加尺码</div>`;
+    return;
+  }
+  box.innerHTML = tempSizes.map((size,index)=>{
+    return `<span class="chip">${esc(size)}<button class="chip-remove" onclick="removeTempSize(${index})">×</button></span>`;
+  }).join("");
+}
+
 function getProduct(code){
   return data.products.find(p => p.code === code);
 }
@@ -344,6 +412,7 @@ function renderAll(){
   renderBom();
   renderWarnings();
   renderLogs();
+  renderTempSizes();  // 新增这行，确保切回产品页时尺码标签刷新
 }
 
 function renderSelects(){
@@ -573,16 +642,49 @@ function renderLogs(){
 function addProduct(){
   const code = $("pCode").value.trim();
   const name = $("pName").value.trim();
-  const sizes = $("pSizes").value.split(",").map(x=>x.trim()).filter(Boolean);
-  const colors = $("pColors").value.split(",").map(x=>x.trim()).filter(Boolean);
 
-  if(!code || !name || !sizes.length){ alert("请填写货号、品名和尺码"); return; }
-  if(data.products.some(p=>p.code===code)){ alert("货号已存在"); return; }
+  const pendingSize = $("pSizeOne").value.trim();
+  const sizes = tempSizes.slice();
 
-  data.products.push({id:uid("P"),code,name,sizes,colors});
+  if(pendingSize && !sizes.includes(pendingSize)){
+    sizes.push(pendingSize);
+  }
+
+  const colors = $("pColors").value
+    .split(",")
+    .map(x => x.trim())
+    .filter(Boolean);
+
+  if(!code || !name || !sizes.length){
+    alert("请填写货号、品名，并至少添加一个尺码");
+    return;
+  }
+
+  if(data.products.some(p => p.code === code)){
+    alert("货号已存在");
+    return;
+  }
+
+  data.products.push({
+    id: uid("P"),
+    code,
+    name,
+    sizes,
+    colors
+  });
+
   saveData();
-  $("pCode").value = $("pName").value = $("pSizes").value = $("pColors").value = "";
+
+  $("pCode").value = "";
+  $("pName").value = "";
+  $("pSizeOne").value = "";
+  $("pColors").value = "";
+
+  tempSizes = [];
+
   renderAll();
+  renderTempSizes();
+
   alert("产品保存成功");
 }
 

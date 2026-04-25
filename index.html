@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0">
-<title>衣跟单 · 轻量补货版 V1.6</title>
+<title>衣跟单 · 轻量补货版 V1.7</title>
 <style>
 :root{--blue:#2f6df6;--green:#18a058;--orange:#ff7a1a;--red:#e5484d;--bg:#f5f6fa;--card:#fff;--text:#1f2937;--muted:#7b8494;--line:#e9edf5}
 *{box-sizing:border-box}
@@ -70,11 +70,25 @@ hr{border:0;border-top:1px solid var(--line);margin:12px 0}
 .count-record-row.swiped .delete-cell{display:table-cell}
 .delete-cell button{white-space:nowrap}
 
+
+.compact-picker-row{display:grid;grid-template-columns:minmax(0,1fr) 112px;gap:10px;align-items:end;margin:6px 0 14px}
+.compact-picker-row label{margin:0 0 6px;font-size:14px;font-weight:900}
+.compact-picker-row input{height:46px;margin:0;padding:10px 12px}
+.compact-picker-row .search-select input{padding-left:12px}
+.compact-picker-row .suggest-list{top:52px}
+.compact-color-options{display:flex;flex-wrap:nowrap;gap:6px;overflow-x:auto;-webkit-overflow-scrolling:touch;margin:0}
+.compact-color-options .color-pill{height:46px;min-width:86px;white-space:nowrap;border-radius:12px;margin:0;padding:8px 10px;font-size:15px}
+.compact-color-options .sub{display:none}
+@media(max-width:390px){
+  .compact-picker-row{grid-template-columns:minmax(0,1fr) 96px;gap:8px}
+  .compact-color-options .color-pill{min-width:76px;font-size:14px}
+}
+
 </style>
 </head>
 <body>
 <div class="app">
-  <div class="header">衣跟单 · 轻量补货版 V1.6</div>
+  <div class="header">衣跟单 · 轻量补货版 V1.7</div>
 
   <section id="home" class="page active">
     <div class="grid2">
@@ -116,17 +130,24 @@ hr{border:0;border-top:1px solid var(--line);margin:12px 0}
   <section id="count" class="page">
     <div class="card">
       <div class="title">成品库存盘点</div>
-      <label>选择货号</label>
-      <div class="sub">输入货号关键词可快速搜索</div>
-      <div class="search-select">
-        <input id="countProductSearch" placeholder="输入货号，例如 26" oninput="renderProductSearch('count')" onfocus="renderProductSearch('count')">
-        <input type="hidden" id="countProduct">
-        <div id="countProductResults" class="suggest-list" style="display:none"></div>
+
+      <div class="compact-picker-row">
+        <div class="compact-field">
+          <label>货号</label>
+          <div class="search-select">
+            <input id="countProductSearch" placeholder="输入货号搜索" oninput="renderProductSearch('count')" onfocus="renderProductSearch('count')">
+            <input type="hidden" id="countProduct">
+            <div id="countProductResults" class="suggest-list" style="display:none"></div>
+          </div>
+        </div>
+
+        <div class="compact-field">
+          <label>颜色</label>
+          <div id="countColorOptions" class="color-options compact-color-options"></div>
+          <input id="countColor" type="hidden" oninput="renderCountForm()">
+        </div>
       </div>
-      <div id="countProductSelected"></div>
-      <label>颜色</label>
-      <div id="countColorOptions" class="color-options"></div>
-      <input id="countColor" placeholder="临时新增颜色" oninput="renderCountForm()">
+
       <div id="countInputs"></div>
       <div class="sub">系统自动带出上次库存，你只改变化的码。每次盘点都会留痕，用来反推真实销量。</div>
     </div>
@@ -381,7 +402,7 @@ function renderColorOptions(prefix){
     box.innerHTML=`<div class="sub">产品库没有颜色，可在下方手动输入</div>`;
     return current;
   }
-  const note=colors.length===1?`<span class="sub">单一颜色已自动选中</span>`:"";
+  const note="";
   box.innerHTML=colors.map(c=>`<button class="color-pill ${c===current?'active':''}" onclick="selectColor('${prefix}','${esc(c)}')">${esc(c)}</button>`).join("")+note;
   return current;
 }

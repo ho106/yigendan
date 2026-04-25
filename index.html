@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0">
-<title>衣跟单 · 轻量补货版 V1.2</title>
+<title>衣跟单 · 轻量补货版 V1.4</title>
 <style>
 :root{--blue:#2f6df6;--green:#18a058;--orange:#ff7a1a;--red:#e5484d;--bg:#f5f6fa;--card:#fff;--text:#1f2937;--muted:#7b8494;--line:#e9edf5}
 *{box-sizing:border-box}
@@ -35,11 +35,15 @@ button{border:0;border-radius:12px;background:var(--blue);color:#fff;padding:12p
 .empty{color:#9aa2b1;text-align:center;padding:20px}.danger-text{color:var(--red);font-weight:900}
 .chip-wrap{display:flex;flex-wrap:wrap;gap:8px;margin:8px 0 12px}.chip{display:inline-flex;align-items:center;gap:6px;background:#eef4ff;color:#2f6df6;border-radius:999px;padding:7px 10px;font-size:14px;font-weight:800}.chip-remove{background:transparent;color:#2f6df6;padding:0;margin:0;font-size:16px;line-height:1}
 hr{border:0;border-top:1px solid var(--line);margin:12px 0}
+.size-input-row{background:#fafbfe;border:1px solid var(--line);border-radius:14px;padding:12px;margin:10px 0}
+.size-input-row b{font-size:17px}
+.size-input-row input{margin-bottom:0}
+
 </style>
 </head>
 <body>
 <div class="app">
-  <div class="header">衣跟单 · 轻量补货版 V1.2</div>
+  <div class="header">衣跟单 · 轻量补货版 V1.4</div>
 
   <section id="home" class="page active">
     <div class="grid2">
@@ -81,10 +85,18 @@ hr{border:0;border-top:1px solid var(--line);margin:12px 0}
   <section id="count" class="page">
     <div class="card">
       <div class="title">成品库存盘点</div>
-      <label>选择货号</label><select id="countProduct" onchange="renderCountForm()"></select>
-      <label>颜色</label><input id="countColor" list="countColorList" placeholder="输入或选择颜色" onchange="renderCountForm()"><datalist id="countColorList"></datalist>
+      <label>选择货号</label>
+      <div class="sub">输入货号关键词可快速搜索</div>
+      <div class="search-select">
+        <input id="countProductSearch" placeholder="输入货号，例如 26" oninput="renderProductSearch('count')" onfocus="renderProductSearch('count')">
+        <input type="hidden" id="countProduct">
+        <div id="countProductResults" class="suggest-list" style="display:none"></div>
+      </div>
+      <div id="countProductSelected"></div>
+      <label>颜色</label>
+      <div id="countColorOptions" class="color-options"></div>
+      <input id="countColor" placeholder="临时新增颜色" oninput="renderCountForm()">
       <div id="countInputs"></div>
-      <button class="btn-green" onclick="saveCount()">保存本次盘点</button>
       <div class="sub">系统自动带出上次库存，你只改变化的码。每次盘点都会留痕，用来反推真实销量。</div>
     </div>
     <div class="card"><div class="title">最近盘点记录</div><div id="countRecords"></div></div>
@@ -94,8 +106,16 @@ hr{border:0;border-top:1px solid var(--line);margin:12px 0}
   <section id="orders" class="page">
     <div class="card">
       <div class="title">新建生产指令单</div>
-      <label>选择货号</label><select id="orderProduct" onchange="renderOrderForm()"></select>
-      <label>颜色</label><input id="orderColor" list="orderColorList" placeholder="输入或选择颜色" onchange="renderOrderForm()"><datalist id="orderColorList"></datalist>
+      <label>选择货号</label>
+      <div class="search-select">
+        <input id="orderProductSearch" placeholder="输入货号，例如 26" oninput="renderProductSearch('order')" onfocus="renderProductSearch('order')">
+        <input type="hidden" id="orderProduct">
+        <div id="orderProductResults" class="suggest-list" style="display:none"></div>
+      </div>
+      <div id="orderProductSelected"></div>
+      <label>颜色</label>
+      <div id="orderColorOptions" class="color-options"></div>
+      <input id="orderColor" placeholder="临时新增颜色" oninput="renderOrderForm()">
       <div class="row2">
         <div><label>预计交货日期</label><input id="orderDue" type="date"></div>
         <div><label>总补货目标</label><input id="orderTargetTotal" type="number" placeholder="可不填"></div>
@@ -121,7 +141,13 @@ hr{border:0;border-top:1px solid var(--line);margin:12px 0}
   <section id="material" class="page">
     <div class="card">
       <div class="title">BOM / 成本项目</div>
-      <label>所属货号</label><select id="bomProduct"></select>
+      <label>所属货号</label>
+      <div class="search-select">
+        <input id="bomProductSearch" placeholder="输入货号，例如 26" oninput="renderProductSearch('bom')" onfocus="renderProductSearch('bom')">
+        <input type="hidden" id="bomProduct">
+        <div id="bomProductResults" class="suggest-list" style="display:none"></div>
+      </div>
+      <div id="bomProductSelected"></div>
       <label>类别</label><select id="bomCategory"><option>面料</option><option>辅料</option><option>工费</option><option>包装</option><option>其他</option></select>
       <label>物料名称</label><input id="bomName" list="materialNameList" placeholder="例如 面料 / 外纱 / 拉链 / 工费"><datalist id="materialNameList"></datalist>
       <label>规格</label><input id="bomSpec" placeholder="例如 粉色涤纶 / 160cm">
@@ -175,6 +201,20 @@ const STORAGE_KEY="yigendan_v4_stable";
 function $(id){return document.getElementById(id)}
 function uid(p){return p+"-"+Date.now()+"-"+Math.floor(Math.random()*1000)}
 function n(v){const x=Number(v);return Number.isFinite(x)?x:0}
+function normalizeSizes(input){
+  const arr = Array.isArray(input) ? input : [input];
+  const out = [];
+  arr.forEach(item=>{
+    String(item ?? "")
+      .split(/[\\/、，,\s]+/)
+      .map(x=>x.trim())
+      .filter(Boolean)
+      .forEach(x=>{
+        if(!out.includes(x)) out.push(x);
+      });
+  });
+  return out;
+}
 function esc(v){return String(v??"").replace(/[&<>"']/g,s=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[s]))}
 function today(){return new Date().toISOString().slice(0,10)}
 function defaultData(){
@@ -188,7 +228,7 @@ function loadData(){
     d.products=d.products||[]; d.boms=d.boms||[]; d.orders=d.orders||[]; d.logs=d.logs||[];
     d.materialStocks=d.materialStocks||d.stocks||[]; d.finishedStocks=d.finishedStocks||[]; d.countRecords=d.countRecords||[]; d.finishedInRecords=d.finishedInRecords||[];
     d.materialNames=d.materialNames||["面料","里布","外纱","拉链","花边","吊牌","包装袋","工费"];
-    d.products.forEach(p=>{p.sizes=p.sizes||[];p.colors=p.colors||[];p.salePrice=n(p.salePrice);p.otherCost=n(p.otherCost)});
+    d.products.forEach(p=>{p.sizes=normalizeSizes(p.sizes||[]);p.colors=p.colors||[];p.salePrice=n(p.salePrice);p.otherCost=n(p.otherCost)});
     return d;
   }catch(e){alert("本地数据损坏，已加载演示数据");return defaultData();}
 }
@@ -224,14 +264,130 @@ function calcOrder(order){
 function recalcOrders(){data.orders=data.orders.map(calcOrder);save()}
 
 let tempSizes=[];
-function addTempSize(){const size=$("pSizeOne").value.trim();if(!size)return alert("请输入尺码");if(tempSizes.includes(size))return alert("尺码已存在");tempSizes.push(size);$("pSizeOne").value="";renderTempSizes()}
+function addTempSize(){
+  const raw=$("pSizeOne").value.trim();
+  const sizes=normalizeSizes(raw);
+  if(!sizes.length)return alert("请输入尺码");
+  let added=0;
+  sizes.forEach(size=>{
+    if(!tempSizes.includes(size)){tempSizes.push(size);added++}
+  });
+  $("pSizeOne").value="";
+  renderTempSizes();
+  if(!added) alert("这些尺码已经添加过了");
+}
 function removeTempSize(i){tempSizes.splice(i,1);renderTempSizes()}
 function renderTempSizes(){const box=$("sizeChipList");if(!box)return;box.innerHTML=tempSizes.length?tempSizes.map((s,i)=>`<span class="chip">${esc(s)}<button class="chip-remove" onclick="removeTempSize(${i})">×</button></span>`).join(""):`<div class="sub">还没有添加尺码</div>`}
-function addProduct(){const code=$("pCode").value.trim(),name=$("pName").value.trim();const pending=$("pSizeOne").value.trim();const sizes=tempSizes.slice();if(pending&&!sizes.includes(pending))sizes.push(pending);const colors=$("pColors").value.split(",").map(x=>x.trim()).filter(Boolean);if(!code||!name||!sizes.length)return alert("请填写货号、品名，并至少添加一个尺码");if(data.products.some(p=>p.code===code))return alert("货号已存在");data.products.push({id:uid("P"),code,name,sizes,colors,salePrice:n($("pSalePrice").value),otherCost:n($("pOtherCost").value)});tempSizes=[];$("pCode").value=$("pName").value=$("pSizeOne").value=$("pColors").value=$("pSalePrice").value=$("pOtherCost").value="";save();renderAll();alert("产品已保存")}
+function addProduct(){const code=$("pCode").value.trim(),name=$("pName").value.trim();const pending=$("pSizeOne").value.trim();let sizes=tempSizes.slice();if(pending)sizes=sizes.concat(normalizeSizes(pending));sizes=normalizeSizes(sizes);const colors=$("pColors").value.split(",").map(x=>x.trim()).filter(Boolean);if(!code||!name||!sizes.length)return alert("请填写货号、品名，并至少添加一个尺码");if(data.products.some(p=>p.code===code))return alert("货号已存在");data.products.push({id:uid("P"),code,name,sizes,colors,salePrice:n($("pSalePrice").value),otherCost:n($("pOtherCost").value)});tempSizes=[];$("pCode").value=$("pName").value=$("pSizeOne").value=$("pColors").value=$("pSalePrice").value=$("pOtherCost").value="";save();renderAll();alert("产品已保存")}
 function renderProducts(){ $("productList").innerHTML=data.products.map(p=>`<div class="item"><div class="item-head"><b>${esc(p.code)}</b><span class="tag gray">${esc(p.name)}</span></div>颜色：${p.colors.map(esc).join("、")}<br>尺码：${p.sizes.map(esc).join("、")}<br>售价：${p.salePrice||0}　其他费用：${p.otherCost||0}<br><button class="btn-small btn-red" onclick="deleteProduct('${esc(p.code)}')">删除</button></div>`).join("")||`<div class="empty">暂无产品</div>`}
 function deleteProduct(code){if(data.orders.some(o=>o.code===code))return alert("已有生产单，不能删除");if(!confirm("确定删除产品和该货号BOM？"))return;data.products=data.products.filter(p=>p.code!==code);data.boms=data.boms.filter(b=>b.code!==code);save();renderAll()}
 
-function renderCountForm(){const p=getProduct($("countProduct").value);if(!p){$("countInputs").innerHTML="";return}const colors=p.colors||[];$("countColorList").innerHTML=colors.map(c=>`<option value="${esc(c)}">`).join("");const color=$("countColor").value.trim()||colors[0]||"";if(!$("countColor").value&&color)$("countColor").value=color;$("countInputs").innerHTML=p.sizes.map(size=>`<label>${esc(size)} 当前库存</label><input class="countQty" data-size="${esc(size)}" type="number" value="${getFinishedQty(p.code,color,size)}">`).join("")}
+
+function productLabel(p){return p ? `${p.code} - ${p.name}` : ""}
+function productSearchMatches(keyword){
+  const kw=String(keyword||"").trim().toLowerCase();
+  return data.products.filter(p=>{
+    const txt=(p.code+" "+p.name).toLowerCase();
+    return !kw || txt.includes(kw);
+  }).slice(0,20);
+}
+function initProductSelector(prefix){
+  const hidden=$(prefix+"Product"), search=$(prefix+"ProductSearch"), selected=$(prefix+"ProductSelected");
+  if(!hidden||!search)return;
+  let code=hidden.value;
+  if(!getProduct(code) && data.products[0]) code=data.products[0].code;
+  hidden.value=code||"";
+  const p=getProduct(code);
+  if(p && (!search.value || !productSearchMatches(search.value).some(x=>x.code===code))){
+    search.value=productLabel(p);
+  }
+  if(selected){
+    selected.innerHTML=p?`<div class="selected-line"><span>已选择货号：<b>${esc(productLabel(p))}</b></span><button class="btn-small btn-gray" onclick="clearProductSearch('${prefix}')">更换</button></div>`:`<div class="empty">暂无产品，请先到产品页新增</div>`;
+  }
+}
+function renderProductSearch(prefix){
+  const search=$(prefix+"ProductSearch"), box=$(prefix+"ProductResults");
+  if(!search||!box)return;
+  const list=productSearchMatches(search.value);
+  if(!list.length){box.style.display="block";box.innerHTML=`<div class="suggest-item">没有匹配货号</div>`;return}
+  box.style.display="block";
+  box.innerHTML=list.map((p,i)=>`<div class="suggest-item ${i===0?'active':''}" onclick="selectProduct('${prefix}','${esc(p.code)}')">${esc(productLabel(p))}</div>`).join("");
+}
+function selectProduct(prefix,code){
+  const hidden=$(prefix+"Product"), search=$(prefix+"ProductSearch"), box=$(prefix+"ProductResults");
+  const p=getProduct(code);
+  if(!hidden||!p)return;
+  hidden.value=code;
+  if(search) search.value=productLabel(p);
+  if(box) box.style.display="none";
+  const colorInput=$(prefix+"Color");
+  if(colorInput) colorInput.value=(p.colors&&p.colors.length)?p.colors[0]:"";
+  initProductSelector(prefix);
+  if(prefix==="count") renderCountForm();
+  if(prefix==="order") renderOrderForm();
+}
+function clearProductSearch(prefix){
+  const search=$(prefix+"ProductSearch"), box=$(prefix+"ProductResults");
+  if(search){search.value="";search.focus();}
+  if(box){box.style.display="none";box.innerHTML="";}
+}
+function renderColorOptions(prefix){
+  const p=getProduct($(prefix+"Product").value);
+  const input=$(prefix+"Color"), box=$(prefix+"ColorOptions");
+  if(!input||!box)return "";
+  const colors=p?(p.colors||[]):[]; 
+  let current=input.value.trim();
+  if(!current && colors.length) current=colors[0];
+  input.value=current;
+  if(!colors.length){
+    box.innerHTML=`<div class="sub">产品库没有颜色，可在下方手动输入</div>`;
+    return current;
+  }
+  const note=colors.length===1?`<span class="sub">单一颜色已自动选中</span>`:"";
+  box.innerHTML=colors.map(c=>`<button class="color-pill ${c===current?'active':''}" onclick="selectColor('${prefix}','${esc(c)}')">${esc(c)}</button>`).join("")+note;
+  return current;
+}
+function selectColor(prefix,color){
+  const input=$(prefix+"Color");
+  if(input) input.value=color;
+  if(prefix==="count") renderCountForm();
+  if(prefix==="order") renderOrderForm();
+}
+function renderCountForm(){
+  const p=getProduct($("countProduct").value);
+  if(!p){$("countInputs").innerHTML="";return}
+  const color=renderColorOptions("count");
+  if(!color){$("countInputs").innerHTML=`<div class="empty">请选择或输入颜色</div>`;return}
+  const header=p.sizes.map(size=>`<th>${esc(size)}</th>`).join("");
+  const inputs=p.sizes.map(size=>`<td><input class="countQty" data-size="${esc(size)}" type="number" value="${getFinishedQty(p.code,color,size)}" oninput="updateCountTotal()"></td>`).join("");
+  $("countInputs").innerHTML=`
+    <label>库存数量</label>
+    <div class="size-table-box"><table class="size-table">
+      <tr><th>尺码</th>${header}</tr>
+      <tr><th>数量(件)</th>${inputs}</tr>
+    </table></div>
+    <div class="count-total">本颜色合计：<span id="countTotal">0</span> 件</div>
+    <div class="count-actions">
+      <button class="btn-gray" onclick="copyLastCount()">复制上次库存</button>
+      <button class="btn-gray" onclick="clearCountQty()">清空</button>
+      <button class="btn-green" onclick="saveCount()">保存本次盘点</button>
+    </div>`;
+  updateCountTotal();
+}
+function updateCountTotal(){
+  const total=Array.from(document.querySelectorAll(".countQty")).reduce((sum,i)=>sum+n(i.value),0);
+  const box=$("countTotal"); if(box) box.innerText=total;
+}
+function copyLastCount(){
+  const p=getProduct($("countProduct").value),color=$("countColor").value.trim();
+  if(!p||!color)return;
+  document.querySelectorAll(".countQty").forEach(i=>i.value=getFinishedQty(p.code,color,i.dataset.size));
+  updateCountTotal();
+}
+function clearCountQty(){
+  document.querySelectorAll(".countQty").forEach(i=>i.value=0);
+  updateCountTotal();
+}
 function saveCount(){const p=getProduct($("countProduct").value),color=$("countColor").value.trim();if(!p||!color)return alert("请选择货号并填写颜色");const stock={};document.querySelectorAll(".countQty").forEach(i=>{stock[i.dataset.size]=n(i.value);setFinishedQty(p.code,color,i.dataset.size,n(i.value))});data.countRecords.push({id:uid("CR"),ts:Date.now(),date:new Date().toLocaleString(),code:p.code,productName:p.name,color,stock});save();renderAll();alert("盘点已保存")}
 function renderCountRecords(){ $("countRecords").innerHTML=data.countRecords.slice().reverse().slice(0,10).map(r=>`<div class="item"><b>${esc(r.code)} ${esc(r.color)}</b><br>${esc(r.date)}<br>${Object.entries(r.stock).map(([s,q])=>`${esc(s)}:${q}`).join("　")}</div>`).join("")||`<div class="empty">暂无盘点记录</div>`; renderSalesEstimate()}
 function renderSalesEstimate(){const p=getProduct($("countProduct").value);if(!p){$("salesEstimate").innerHTML="";return}const color=$("countColor").value.trim();const list=data.countRecords.filter(r=>r.code===p.code&&r.color===color).sort((a,b)=>a.ts-b.ts);if(list.length<2){$("salesEstimate").innerHTML=`<div class="empty">至少两次盘点后，才能反推销量</div>`;return}const prev=list[list.length-2],cur=list[list.length-1];let html=`<div class="sub">周期：${esc(prev.date)} → ${esc(cur.date)}</div>`;p.sizes.forEach(size=>{const inbound=data.finishedInRecords.filter(x=>x.code===p.code&&x.color===color&&x.size===size&&x.ts>prev.ts&&x.ts<=cur.ts).reduce((s,x)=>s+n(x.qty),0);const sold=Math.max(0,n(prev.stock[size])+inbound-n(cur.stock[size]));html+=`<div class="item">${esc(size)}码：销售 ${sold} 件（入库 ${inbound}）</div>`});$("salesEstimate").innerHTML=html}
@@ -258,10 +414,8 @@ function hasRecentSales(code,color){
 function renderOrderForm(){
   const p=getProduct($("orderProduct").value);
   if(!p){$("orderInputs").innerHTML="";return}
-  const colors=p.colors||[];
-  $("orderColorList").innerHTML=colors.map(c=>`<option value="${esc(c)}">`).join("");
-  const color=$("orderColor").value.trim()||colors[0]||"";
-  if(!$("orderColor").value&&color)$("orderColor").value=color;
+  const color=renderColorOptions("order");
+  if(!color){$("orderInputs").innerHTML=`<div class="empty">请选择或输入颜色</div>`;return}
   const recentSales=getRecentSalesBySize(p.code,color);
   const hasSales=Object.values(recentSales).reduce((a,b)=>a+n(b),0)>0;
   $("orderInputs").innerHTML=p.sizes.map(size=>{
@@ -269,7 +423,7 @@ function renderOrderForm(){
     const transit=getTransitQty(p.code,color,size);
     const sold=n(recentSales[size]);
     const suggest=hasSales?Math.max(0,sold-transit):0;
-    return `<div class="item"><b>${esc(size)}码</b><br>现货：${stock}　在途：${transit}　最近销量：${sold}<div class="row3"><div><label>目标库存</label><input class="targetQty" data-size="${esc(size)}" type="number" placeholder="可不填"></div><div><label>建议</label><input class="suggestQty" data-size="${esc(size)}" type="number" value="${suggest}" readonly></div><div><label>下单</label><input class="orderQty" data-size="${esc(size)}" type="number" placeholder="0"></div></div></div>`;
+    return `<div class="size-input-row"><b>${esc(size)}码</b><br>现货：${stock}　在途：${transit}　最近销量：${sold}<div class="row3"><div><label>目标库存</label><input class="targetQty" data-size="${esc(size)}" type="number" placeholder="可不填"></div><div><label>建议</label><input class="suggestQty" data-size="${esc(size)}" type="number" value="${suggest}" readonly></div><div><label>下单</label><input class="orderQty" data-size="${esc(size)}" type="number" placeholder="0"></div></div></div>`;
   }).join("");
 }
 function setInputBySize(className,size,value){
@@ -333,7 +487,7 @@ function backupData(){$("backupBox").value=JSON.stringify(data);$("backupBox").s
 function restoreData(){if(!confirm("导入备份会覆盖当前数据，确定继续？"))return;try{const obj=JSON.parse($("backupBox").value);if(!obj.products||!obj.boms)throw new Error();data=obj;save();renderAll();alert("导入成功")}catch(e){alert("导入失败，格式不对")}}
 function resetDemo(){if(confirm("确定清空并恢复演示数据？")){localStorage.removeItem(STORAGE_KEY);data=defaultData();save();location.reload()}}
 
-function renderSelects(){const opts=data.products.map(p=>`<option value="${esc(p.code)}">${esc(p.code)} - ${esc(p.name)}</option>`).join("");["countProduct","orderProduct","bomProduct"].forEach(id=>$(id).innerHTML=opts);renderCountForm();renderOrderForm()}
+function renderSelects(){["count","order","bom"].forEach(initProductSelector);renderCountForm();renderOrderForm()}
 function renderAll(){recalcOrders();renderSelects();renderHome();renderProducts();renderCountRecords();renderOrders();renderBom();renderMaterialStock();renderWarnings();renderTempSizes()}
 function showPage(id){if(id!=="product"){tempSizes=[]}document.querySelectorAll(".page").forEach(p=>p.classList.remove("active"));$(id).classList.add("active");document.querySelectorAll(".nav button").forEach(b=>b.classList.toggle("active",b.dataset.nav===id));renderAll();window.scrollTo(0,0)}
 renderAll();

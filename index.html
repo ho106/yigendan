@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0">
-<title>衣跟单 · 轻量补货版 V1.4</title>
+<title>衣跟单 · 轻量补货版 V1.6</title>
 <style>
 :root{--blue:#2f6df6;--green:#18a058;--orange:#ff7a1a;--red:#e5484d;--bg:#f5f6fa;--card:#fff;--text:#1f2937;--muted:#7b8494;--line:#e9edf5}
 *{box-sizing:border-box}
@@ -39,11 +39,42 @@ hr{border:0;border-top:1px solid var(--line);margin:12px 0}
 .size-input-row b{font-size:17px}
 .size-input-row input{margin-bottom:0}
 
+.search-select{position:relative}
+.suggest-list{position:absolute;left:0;right:0;top:58px;background:#fff;border:1px solid #dbe1ea;border-radius:12px;box-shadow:0 10px 24px rgba(15,23,42,.14);z-index:30;overflow:hidden}
+.suggest-item{padding:12px 14px;border-bottom:1px solid var(--line);font-size:15px}
+.suggest-item:last-child{border-bottom:0}
+.suggest-item.active{background:#eef4ff;color:#1d4ed8;font-weight:900}
+.selected-line{background:#fafbfe;border:1px solid var(--line);border-radius:12px;padding:12px;margin:8px 0 12px;display:flex;justify-content:space-between;gap:8px;align-items:center}
+.color-options{display:flex;flex-wrap:wrap;gap:8px;margin:8px 0}
+.color-pill{background:#fff;color:var(--text);border:1px solid #dbe1ea;border-radius:999px;padding:8px 12px}
+.color-pill.active{background:#eef4ff;color:var(--blue);border-color:var(--blue)}
+.size-table-box{width:100%;overflow-x:auto;-webkit-overflow-scrolling:touch;border:1px solid #dbe1ea;border-radius:14px;background:#fff}
+.size-table{border-collapse:collapse;width:max-content;min-width:100%;font-size:15px}
+.size-table th,.size-table td{border:1px solid #dbe1ea;padding:8px;text-align:center;vertical-align:middle;white-space:nowrap}
+.size-table th{background:#f7faff;font-weight:900;color:#111827}
+.size-table th:first-child,.size-table td:first-child{min-width:76px;background:#f7faff;font-weight:900}
+.size-table th:not(:first-child),.size-table td:not(:first-child){min-width:82px}
+.size-table input{width:68px;min-width:60px;text-align:center;margin:0;padding:10px 6px}
+.count-total{font-size:16px;font-weight:900;margin:12px 0}
+.count-total span{color:var(--blue);font-size:22px}
+.count-actions{display:grid;grid-template-columns:1fr 1fr 1.4fr;gap:8px}
+.count-record-tools{margin-bottom:10px}
+.count-record-table-wrap{overflow-x:auto;-webkit-overflow-scrolling:touch;border:1px solid #dbe1ea;border-radius:14px;background:#fff}
+.count-record-table{border-collapse:collapse;width:max-content;min-width:100%;font-size:13px}
+.count-record-table th,.count-record-table td{border-bottom:1px solid var(--line);padding:9px 8px;text-align:center;white-space:nowrap}
+.count-record-table th{background:#f7faff;color:#374151;font-weight:900}
+.count-record-table td:nth-child(1),.count-record-table td:nth-child(2),.count-record-table td:nth-child(3){font-weight:800}
+.count-record-row{transition:background .2s}
+.count-record-row.swiped{background:#fff5f5}
+.delete-cell{display:none}
+.count-record-row.swiped .delete-cell{display:table-cell}
+.delete-cell button{white-space:nowrap}
+
 </style>
 </head>
 <body>
 <div class="app">
-  <div class="header">衣跟单 · 轻量补货版 V1.4</div>
+  <div class="header">衣跟单 · 轻量补货版 V1.6</div>
 
   <section id="home" class="page active">
     <div class="grid2">
@@ -99,7 +130,14 @@ hr{border:0;border-top:1px solid var(--line);margin:12px 0}
       <div id="countInputs"></div>
       <div class="sub">系统自动带出上次库存，你只改变化的码。每次盘点都会留痕，用来反推真实销量。</div>
     </div>
-    <div class="card"><div class="title">最近盘点记录</div><div id="countRecords"></div></div>
+    <div class="card">
+      <div class="title">全部盘点记录</div>
+      <div class="count-record-tools">
+        <input id="countRecordFilter" placeholder="输入货号筛选，例如 26" oninput="renderCountRecords()">
+        <div class="sub">一行一条盘点记录，左滑记录可删除。</div>
+      </div>
+      <div id="countRecords"></div>
+    </div>
     <div class="card"><div class="title">最近销量反推</div><div id="salesEstimate"></div></div>
   </section>
 
@@ -381,15 +419,117 @@ function updateCountTotal(){
 function copyLastCount(){
   const p=getProduct($("countProduct").value),color=$("countColor").value.trim();
   if(!p||!color)return;
-  document.querySelectorAll(".countQty").forEach(i=>i.value=getFinishedQty(p.code,color,i.dataset.size));
+  const latest=data.countRecords
+    .filter(r=>r.code===p.code&&r.color===color)
+    .sort((a,b)=>n(b.ts)-n(a.ts))[0];
+
+  if(!latest){
+    document.querySelectorAll(".countQty").forEach(i=>i.value=0);
+    updateCountTotal();
+    alert("暂无上次盘点记录，已填为0");
+    return;
+  }
+
+  document.querySelectorAll(".countQty").forEach(i=>{
+    i.value=n((latest.stock||{})[i.dataset.size]);
+  });
   updateCountTotal();
 }
 function clearCountQty(){
   document.querySelectorAll(".countQty").forEach(i=>i.value=0);
   updateCountTotal();
 }
-function saveCount(){const p=getProduct($("countProduct").value),color=$("countColor").value.trim();if(!p||!color)return alert("请选择货号并填写颜色");const stock={};document.querySelectorAll(".countQty").forEach(i=>{stock[i.dataset.size]=n(i.value);setFinishedQty(p.code,color,i.dataset.size,n(i.value))});data.countRecords.push({id:uid("CR"),ts:Date.now(),date:new Date().toLocaleString(),code:p.code,productName:p.name,color,stock});save();renderAll();alert("盘点已保存")}
-function renderCountRecords(){ $("countRecords").innerHTML=data.countRecords.slice().reverse().slice(0,10).map(r=>`<div class="item"><b>${esc(r.code)} ${esc(r.color)}</b><br>${esc(r.date)}<br>${Object.entries(r.stock).map(([s,q])=>`${esc(s)}:${q}`).join("　")}</div>`).join("")||`<div class="empty">暂无盘点记录</div>`; renderSalesEstimate()}
+function saveCount(){const p=getProduct($("countProduct").value),color=$("countColor").value.trim();if(!p||!color)return alert("请选择货号并填写颜色");const stock={};document.querySelectorAll(".countQty").forEach(i=>{stock[i.dataset.size]=n(i.value);setFinishedQty(p.code,color,i.dataset.size,n(i.value))});data.countRecords.push({id:uid("CR"),ts:Date.now(),date:new Date().toLocaleString(),dateOnly:new Date().toLocaleDateString("zh-CN"),code:p.code,productName:p.name,color,stock});save();renderAll();alert("盘点已保存")}
+function formatRecordDate(r){
+  if(r.dateOnly) return r.dateOnly;
+  if(r.ts) return new Date(r.ts).toLocaleDateString("zh-CN");
+  const s=String(r.date||"");
+  return s.split(/[,\s，]/)[0] || s;
+}
+function getRecordSizes(records){
+  const sizes=[];
+  records.forEach(r=>{
+    const p=getProduct(r.code);
+    normalizeSizes(p?p.sizes:[]).forEach(s=>{if(!sizes.includes(s))sizes.push(s)});
+    Object.keys(r.stock||{}).forEach(s=>{if(!sizes.includes(s))sizes.push(s)});
+  });
+  return sizes.sort((a,b)=>{
+    const na=Number(a), nb=Number(b);
+    if(Number.isFinite(na)&&Number.isFinite(nb)) return na-nb;
+    return String(a).localeCompare(String(b),"zh-CN");
+  });
+}
+function renderCountRecords(){
+  const kw=($("countRecordFilter")?.value||"").trim();
+  let records=data.countRecords.slice().sort((a,b)=>n(b.ts)-n(a.ts));
+  if(kw) records=records.filter(r=>String(r.code).includes(kw));
+  if(!records.length){
+    $("countRecords").innerHTML=`<div class="empty">暂无盘点记录</div>`;
+    renderSalesEstimate();
+    return;
+  }
+  const sizes=getRecordSizes(records);
+  const header=sizes.map(s=>`<th>${esc(s)}</th>`).join("");
+  const rows=records.map(r=>{
+    const cells=sizes.map(s=>`<td>${n((r.stock||{})[s])}</td>`).join("");
+    return `<tr class="count-record-row" ontouchstart="recordTouchStart(event,this)" ontouchend="recordTouchEnd(event,this)">
+      <td>${esc(formatRecordDate(r))}</td>
+      <td>${esc(r.code)}</td>
+      <td>${esc(r.color)}</td>
+      ${cells}
+      <td class="delete-cell"><button class="btn-small btn-red" onclick="deleteCountRecord('${esc(r.id)}')">删除</button></td>
+    </tr>`;
+  }).join("");
+  $("countRecords").innerHTML=`<div class="count-record-table-wrap"><table class="count-record-table">
+    <tr><th>日期</th><th>货号</th><th>颜色</th>${header}</tr>
+    ${rows}
+  </table></div>`;
+  renderSalesEstimate();
+}
+function recordTouchStart(e,row){
+  row.dataset.touchX=e.changedTouches[0].clientX;
+}
+function recordTouchEnd(e,row){
+  const start=n(row.dataset.touchX);
+  const end=e.changedTouches[0].clientX;
+  const dx=end-start;
+  document.querySelectorAll(".count-record-row").forEach(r=>{if(r!==row)r.classList.remove("swiped")});
+  if(dx<-35) row.classList.add("swiped");
+  if(dx>35) row.classList.remove("swiped");
+}
+function restoreFinishedStockFromLatestCount(code,color){
+  const list=data.countRecords.filter(r=>r.code===code&&r.color===color).sort((a,b)=>n(b.ts)-n(a.ts));
+  if(!list.length){
+    data.finishedStocks=data.finishedStocks.filter(s=>!(s.code===code&&s.color===color));
+    return;
+  }
+  const latest=list[0];
+  let fs=getFinished(code,color);
+  if(!fs){fs={id:uid("FS"),code,color,stock:{},updatedAt:""};data.finishedStocks.push(fs)}
+  fs.stock={...(latest.stock||{})};
+  const p=getProduct(code);
+  if(p) p.sizes.forEach(size=>{if(fs.stock[size]===undefined)fs.stock[size]=0});
+  fs.updatedAt=new Date().toISOString();
+}
+function deleteCountRecord(id){
+  const rec=data.countRecords.find(r=>r.id===id);
+  if(!rec)return;
+
+  const same=data.countRecords
+    .filter(r=>r.code===rec.code&&r.color===rec.color)
+    .sort((a,b)=>n(b.ts)-n(a.ts));
+  const isLatest=same.length && same[0].id===id;
+
+  if(isLatest){
+    alert("这是该货号/颜色的最新盘点记录，不能直接删除。\n如果盘错了，请重新盘点一条正确记录来覆盖库存。");
+    return;
+  }
+
+  if(!confirm("确定删除这条历史盘点记录吗？"))return;
+  data.countRecords=data.countRecords.filter(r=>r.id!==id);
+  save();
+  renderAll();
+}
 function renderSalesEstimate(){const p=getProduct($("countProduct").value);if(!p){$("salesEstimate").innerHTML="";return}const color=$("countColor").value.trim();const list=data.countRecords.filter(r=>r.code===p.code&&r.color===color).sort((a,b)=>a.ts-b.ts);if(list.length<2){$("salesEstimate").innerHTML=`<div class="empty">至少两次盘点后，才能反推销量</div>`;return}const prev=list[list.length-2],cur=list[list.length-1];let html=`<div class="sub">周期：${esc(prev.date)} → ${esc(cur.date)}</div>`;p.sizes.forEach(size=>{const inbound=data.finishedInRecords.filter(x=>x.code===p.code&&x.color===color&&x.size===size&&x.ts>prev.ts&&x.ts<=cur.ts).reduce((s,x)=>s+n(x.qty),0);const sold=Math.max(0,n(prev.stock[size])+inbound-n(cur.stock[size]));html+=`<div class="item">${esc(size)}码：销售 ${sold} 件（入库 ${inbound}）</div>`});$("salesEstimate").innerHTML=html}
 
 function getRecentSalesBySize(code,color){
@@ -422,7 +562,7 @@ function renderOrderForm(){
     const stock=getFinishedQty(p.code,color,size);
     const transit=getTransitQty(p.code,color,size);
     const sold=n(recentSales[size]);
-    const suggest=hasSales?Math.max(0,sold-transit):0;
+    const suggest=hasSales?Math.max(0,sold-stock-transit):0;
     return `<div class="size-input-row"><b>${esc(size)}码</b><br>现货：${stock}　在途：${transit}　最近销量：${sold}<div class="row3"><div><label>目标库存</label><input class="targetQty" data-size="${esc(size)}" type="number" placeholder="可不填"></div><div><label>建议</label><input class="suggestQty" data-size="${esc(size)}" type="number" value="${suggest}" readonly></div><div><label>下单</label><input class="orderQty" data-size="${esc(size)}" type="number" placeholder="0"></div></div></div>`;
   }).join("");
 }

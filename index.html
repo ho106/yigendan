@@ -3,15 +3,12 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0">
-<title>衣跟单 V4.1 稳定实用版</title>
+<title>衣跟单 · 轻量补货版 V1.2</title>
 <style>
-:root{
-  --blue:#2f6df6;--green:#18a058;--orange:#ff7a1a;--red:#e5484d;
-  --bg:#f5f6fa;--card:#fff;--text:#1f2937;--muted:#7b8494;--line:#e9edf5;
-}
+:root{--blue:#2f6df6;--green:#18a058;--orange:#ff7a1a;--red:#e5484d;--bg:#f5f6fa;--card:#fff;--text:#1f2937;--muted:#7b8494;--line:#e9edf5}
 *{box-sizing:border-box}
 body{margin:0;background:var(--bg);font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei",Arial,sans-serif;color:var(--text)}
-.app{max-width:560px;margin:0 auto;min-height:100vh;padding-bottom:82px}
+.app{max-width:560px;margin:0 auto;min-height:100vh;padding-bottom:84px}
 .header{position:sticky;top:0;z-index:9;background:#fff;padding:16px;text-align:center;font-size:22px;font-weight:900;box-shadow:0 2px 12px rgba(0,0,0,.05)}
 .page{display:none;padding:16px}.page.active{display:block}
 .card{background:#fff;border-radius:18px;padding:16px;margin:14px 0;box-shadow:0 8px 24px rgba(30,41,59,.06)}
@@ -28,59 +25,92 @@ button{border:0;border-radius:12px;background:var(--blue);color:#fff;padding:12p
 .btn-green{background:var(--green)}.btn-orange{background:var(--orange)}.btn-red{background:var(--red)}.btn-gray{background:#eef2f7;color:#1f2937}.btn-small{padding:7px 10px;font-size:13px;border-radius:10px}
 .row2{display:grid;grid-template-columns:1fr 1fr;gap:8px}.row3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px}
 .item{background:#fafbfe;border:1px solid var(--line);border-radius:14px;padding:12px;margin:10px 0}
-.item:active{opacity:.75}
-.item-head{display:flex;justify-content:space-between;gap:8px;align-items:flex-start}
+.item:active{opacity:.75}.item-head{display:flex;justify-content:space-between;gap:8px;align-items:flex-start}
 .tag{display:inline-block;border-radius:999px;padding:5px 10px;font-size:12px;font-weight:900;white-space:nowrap}
 .ok{background:#e8f8ef;color:#159957}.warn{background:#fff2d6;color:#a96a00}.bad{background:#ffe9ea;color:#d9363e}.gray{background:#eef2f7;color:#4b5563}
-.table-wrap{overflow:auto}.table{width:100%;border-collapse:collapse;font-size:13px;min-width:680px}.table th,.table td{border-bottom:1px solid var(--line);padding:8px 6px;text-align:left;vertical-align:top}.table th{background:#fafafa;color:#6b7280}
+.table-wrap{overflow:auto}.table{width:100%;border-collapse:collapse;font-size:13px;min-width:720px}.table th,.table td{border-bottom:1px solid var(--line);padding:8px 6px;text-align:left;vertical-align:top}.table th{background:#fafafa;color:#6b7280}
 .progress{height:9px;background:#e9edf5;border-radius:99px;overflow:hidden;margin:8px 0}.bar{height:100%;background:var(--green)}
 .nav{position:fixed;left:0;right:0;bottom:0;background:#fff;border-top:1px solid #e5e7eb;z-index:10;display:flex;justify-content:center}.nav-inner{max-width:560px;width:100%;display:grid;grid-template-columns:repeat(5,1fr)}
 .nav button{background:#fff;color:#8b95a5;border-radius:0;padding:8px 0;font-size:12px}.nav button.active{color:var(--blue)}.nav b{display:block;font-size:22px;line-height:22px}
-.empty{color:#9aa2b1;text-align:center;padding:20px}.danger-text{color:var(--red);font-weight:900}.hide{display:none}
+.empty{color:#9aa2b1;text-align:center;padding:20px}.danger-text{color:var(--red);font-weight:900}
+.chip-wrap{display:flex;flex-wrap:wrap;gap:8px;margin:8px 0 12px}.chip{display:inline-flex;align-items:center;gap:6px;background:#eef4ff;color:#2f6df6;border-radius:999px;padding:7px 10px;font-size:14px;font-weight:800}.chip-remove{background:transparent;color:#2f6df6;padding:0;margin:0;font-size:16px;line-height:1}
 hr{border:0;border-top:1px solid var(--line);margin:12px 0}
-.chip-wrap{display:flex;flex-wrap:wrap;gap:8px;margin:8px 0 12px}
-.chip{display:inline-flex;align-items:center;gap:6px;background:#eef4ff;color:#2f6df6;border-radius:999px;padding:7px 10px;font-size:14px;font-weight:800}
-.chip-remove{background:transparent;color:#2f6df6;padding:0;margin:0;font-size:16px;line-height:1}
-
 </style>
 </head>
 <body>
 <div class="app">
-  <div class="header">衣跟单 V4.1</div>
+  <div class="header">衣跟单 · 轻量补货版 V1.2</div>
 
   <section id="home" class="page active">
     <div class="grid2">
-      <div class="stat blue" onclick="showPage('orders')"><div>进行中指令单</div><div id="homeActiveCount" class="num">0</div><div>点击查看生产任务</div></div>
-      <div class="stat orange" onclick="showPage('warning')"><div>缺料预警</div><div id="homeWarnCount" class="num">0</div><div>点击查看采购建议</div></div>
+      <div class="stat blue" onclick="showPage('orders')"><div>待处理生产单</div><div id="homeActiveCount" class="num">0</div><div>点击查看</div></div>
+      <div class="stat orange" onclick="showPage('warning')"><div>采购建议</div><div id="homeWarnCount" class="num">0</div><div>点击查看缺料</div></div>
     </div>
     <div class="card">
       <div class="title">快捷操作</div>
       <div class="quick">
-        <button onclick="showPage('orders')"><div class="qicon">＋</div>新建</button>
-        <button onclick="showPage('stock')"><div class="qicon">↕</div>入库</button>
-        <button onclick="showPage('products')"><div class="qicon">👕</div>产品</button>
-        <button onclick="showPage('bom')"><div class="qicon">📦</div>物料</button>
+        <button onclick="showPage('count')"><div class="qicon">📋</div>盘点</button>
+        <button onclick="showPage('orders')"><div class="qicon">＋</div>下单</button>
+        <button onclick="showPage('material')"><div class="qicon">📦</div>物料</button>
+        <button onclick="showPage('product')"><div class="qicon">👕</div>产品</button>
       </div>
     </div>
-    <div class="card"><div class="title">最近指令单 <button class="btn-small btn-gray" onclick="showPage('orders')">全部</button></div><div id="homeOrders"></div></div>
+    <div class="card"><div class="title">待处理提醒</div><div id="todoList"></div></div>
+    <div class="card"><div class="title">最近生产单 <button class="btn-small btn-gray" onclick="showPage('orders')">全部</button></div><div id="homeOrders"></div></div>
+  </section>
+
+  <section id="product" class="page">
+    <div class="card">
+      <div class="title">产品模板</div>
+      <label>货号</label><input id="pCode" placeholder="例如 26202">
+      <label>品名</label><input id="pName" placeholder="例如 女童连衣裙">
+      <div class="row2">
+        <div><label>售价</label><input id="pSalePrice" type="number" placeholder="例如 89"></div>
+        <div><label>单件其他费用</label><input id="pOtherCost" type="number" placeholder="运费/包装/杂费"></div>
+      </div>
+      <label>颜色，用逗号分隔</label><input id="pColors" placeholder="例如 红色,粉色,蓝色">
+      <label>尺码</label>
+      <div class="row2"><input id="pSizeOne" placeholder="例如 90 / 100 / S / M"><button type="button" onclick="addTempSize()">新增尺码</button></div>
+      <div id="sizeChipList" class="chip-wrap"></div>
+      <button onclick="addProduct()">保存产品模板</button>
+      <div class="sub">首次录入后，以后选择货号会自动带出颜色、尺码、售价、BOM和成本。</div>
+    </div>
+    <div class="card"><div class="title">产品列表</div><div id="productList"></div></div>
+  </section>
+
+  <section id="count" class="page">
+    <div class="card">
+      <div class="title">成品库存盘点</div>
+      <label>选择货号</label><select id="countProduct" onchange="renderCountForm()"></select>
+      <label>颜色</label><input id="countColor" list="countColorList" placeholder="输入或选择颜色" onchange="renderCountForm()"><datalist id="countColorList"></datalist>
+      <div id="countInputs"></div>
+      <button class="btn-green" onclick="saveCount()">保存本次盘点</button>
+      <div class="sub">系统自动带出上次库存，你只改变化的码。每次盘点都会留痕，用来反推真实销量。</div>
+    </div>
+    <div class="card"><div class="title">最近盘点记录</div><div id="countRecords"></div></div>
+    <div class="card"><div class="title">最近销量反推</div><div id="salesEstimate"></div></div>
   </section>
 
   <section id="orders" class="page">
     <div class="card">
       <div class="title">新建生产指令单</div>
-      <label>选择货号</label><select id="orderProduct" onchange="renderSizeInputs()"></select>
-      <label>颜色</label><input id="orderColor" placeholder="例如：粉色">
-      <div id="sizeInputs"></div>
-      <button onclick="createOrder()">创建指令单并锁定当前 BOM</button>
-      <div class="sub">V4说明：创建指令单时会保存一份 BOM 快照，后续修改 BOM 不会影响旧指令单。</div>
+      <label>选择货号</label><select id="orderProduct" onchange="renderOrderForm()"></select>
+      <label>颜色</label><input id="orderColor" list="orderColorList" placeholder="输入或选择颜色" onchange="renderOrderForm()"><datalist id="orderColorList"></datalist>
+      <div class="row2">
+        <div><label>预计交货日期</label><input id="orderDue" type="date"></div>
+        <div><label>总补货目标</label><input id="orderTargetTotal" type="number" placeholder="可不填"></div>
+      </div>
+      <button class="btn-gray btn-small" onclick="autoFillByTarget()">按总目标自动分配</button>
+      <button class="btn-gray btn-small" onclick="copySuggestToOrder()">使用建议数量</button>
+      <button class="btn-gray btn-small" onclick="clearOrderQty()">清空下单数量</button>
+      <div id="orderInputs"></div>
+      <button onclick="createOrder()">生成生产指令单</button>
+      <div class="sub">新款没有历史数据时，建议数量默认0，你手动填。老款会根据库存、在途、目标库存给建议。</div>
     </div>
     <div class="card">
-      <div class="title">指令单列表</div>
+      <div class="title">生产单列表</div>
       <select id="orderFilter" onchange="renderOrders()">
-        <option value="active">只看进行中</option>
-        <option value="all">全部</option>
-        <option value="completed">已完成</option>
-        <option value="cancelled">已取消</option>
+        <option value="open">未入库</option><option value="all">全部</option><option value="已入库">已入库</option><option value="已取消">已取消</option>
       </select>
       <div id="orderList"></div>
     </div>
@@ -88,728 +118,224 @@ hr{border:0;border-top:1px solid var(--line);margin:12px 0}
 
   <section id="detail" class="page"><div id="detailBox"></div></section>
 
-  <section id="warning" class="page">
+  <section id="material" class="page">
     <div class="card">
-      <div class="title">采购建议 / 缺料汇总</div>
-      <div class="sub">只统计“进行中”的指令单。按物料+规格合并总需求，避免同一库存被多个订单重复误判。</div>
-      <div id="purchaseList"></div>
-    </div>
-    <div class="card"><div class="title">逐单缺料明细</div><div id="warningList"></div></div>
-  </section>
-
-  <section id="stock" class="page">
-    <div class="card">
-      <div class="title">库存操作</div>
-      <label>选择物料</label><select id="stockMaterial"></select>
-      <label>类型</label>
-      <select id="stockType">
-        <option value="in">采购到货入库</option>
-        <option value="out">生产领料出库</option>
-        <option value="onway">登记已下单未到</option>
-      </select>
-      <label>关联指令单（出库时建议选择）</label><select id="stockOrder"></select>
-      <label>数量</label><input id="stockQty" type="number" placeholder="请输入数量">
-      <label>备注</label><input id="stockRemark" placeholder="例如：第一批到货 / 某工单领料">
-      <button class="btn-green" onclick="stockOperation()">提交操作</button>
-    </div>
-    <div class="card">
-      <div class="title">库存总览</div>
-      <input id="stockSearch" placeholder="搜索物料/规格" oninput="renderStock()">
-      <div id="stockList"></div>
-    </div>
-    <div class="card"><div class="title">最近库存流水</div><div id="logList"></div></div>
-  </section>
-
-  <section id="products" class="page">
-    <div class="card">
-      <div class="title">产品管理</div>
-      <label>货号</label><input id="pCode" placeholder="例如 A001">
-      <label>品名</label><input id="pName" placeholder="例如 女童泳衣">
-      <label>尺码</label>
-      <div class="row2">
-        <input id="pSizeOne" placeholder="例如 90 / 100 / 110 / S / M">
-        <button type="button" onclick="addTempSize()">新增尺码</button>
-      </div>
-      <div id="sizeChipList" class="chip-wrap"></div>
-      <div class="sub">先输入一个尺码，再点“新增尺码”。不需要用逗号分隔。</div>
-      <label>颜色，用逗号分隔</label><input id="pColors" placeholder="例如 粉色,蓝色">
-      <button onclick="addProduct()">保存产品</button>
-    </div>
-    <div class="card"><div class="title">产品列表</div><div id="productList"></div></div>
-  </section>
-
-  <section id="bom" class="page">
-    <div class="card">
-      <div class="title">物料 BOM</div>
+      <div class="title">BOM / 成本项目</div>
       <label>所属货号</label><select id="bomProduct"></select>
-      <label>物料名称</label><input id="bomName" placeholder="例如 面料">
-      <label>规格</label><input id="bomSpec" placeholder="例如 粉色涤纶">
+      <label>类别</label><select id="bomCategory"><option>面料</option><option>辅料</option><option>工费</option><option>包装</option><option>其他</option></select>
+      <label>物料名称</label><input id="bomName" list="materialNameList" placeholder="例如 面料 / 外纱 / 拉链 / 工费"><datalist id="materialNameList"></datalist>
+      <label>规格</label><input id="bomSpec" placeholder="例如 粉色涤纶 / 160cm">
       <div class="row3">
-        <div><label>单件用量</label><input id="bomUsage" type="number" placeholder="1.2"></div>
+        <div><label>单位</label><input id="bomUnit" placeholder="米/条/件"></div>
+        <div><label>单耗</label><input id="bomUsage" type="number" placeholder="1.2"></div>
         <div><label>单价</label><input id="bomPrice" type="number" placeholder="15"></div>
-        <div><label>单位</label><input id="bomUnit" placeholder="米"></div>
       </div>
-      <button class="btn-orange" onclick="addBom()">保存物料</button>
+      <label>供应商</label><input id="bomSupplier" placeholder="可不填">
+      <button class="btn-orange" onclick="addBom()">保存 BOM</button>
     </div>
-    <div class="card"><div class="title">物料清单</div><div id="bomList"></div></div>
+    <div class="card"><div class="title">BOM 列表</div><div id="bomList"></div></div>
+    <div class="card">
+      <div class="title">物料库存操作</div>
+      <label>物料</label><select id="matStockSelect"></select>
+      <label>类型</label><select id="matStockType"><option value="in">普通入库</option><option value="arrive">在途到货入库</option><option value="out">出库</option><option value="onway">已下单未到</option></select>
+      <label>数量</label><input id="matStockQty" type="number">
+      <button class="btn-green" onclick="materialStockOp()">提交</button>
+    </div>
+    <div class="card"><div class="title">物料库存</div><div id="materialStockList"></div></div>
+  </section>
+
+  <section id="warning" class="page">
+    <div class="card"><div class="title">采购建议</div><div id="purchaseList"></div></div>
   </section>
 
   <section id="report" class="page">
     <div class="card">
-      <div class="title">报表 / 数据</div>
-      <button onclick="exportOrderCSV()">导出指令单明细 CSV</button>
+      <div class="title">报表 / 备份</div>
+      <button onclick="exportOrdersCSV()">导出生产单明细 CSV</button>
       <button class="btn-green" onclick="exportPurchaseCSV()">导出采购建议 CSV</button>
       <button class="btn-gray" onclick="backupData()">备份数据</button>
       <button class="btn-orange" onclick="restoreData()">导入备份</button>
       <button class="btn-red" onclick="resetDemo()">恢复演示数据</button>
       <textarea id="backupBox" placeholder="备份数据会显示在这里；导入时把备份内容粘贴到这里"></textarea>
-      <div class="sub">当前版本数据保存在本手机浏览器里。换手机或清理浏览器数据会丢失，正式版需要接微信云开发数据库。</div>
+      <div class="sub">每次更新代码前，先备份数据。当前版本数据存在本浏览器里。</div>
     </div>
   </section>
 </div>
 
 <div class="nav"><div class="nav-inner">
   <button data-nav="home" class="active" onclick="showPage('home')"><b>▦</b>首页</button>
-  <button data-nav="orders" onclick="showPage('orders')"><b>▤</b>指令单</button>
-  <button data-nav="stock" onclick="showPage('stock')"><b>□</b>库存</button>
-  <button data-nav="products" onclick="showPage('products')"><b>👕</b>产品</button>
+  <button data-nav="count" onclick="showPage('count')"><b>📋</b>盘点</button>
+  <button data-nav="orders" onclick="showPage('orders')"><b>＋</b>下单</button>
+  <button data-nav="material" onclick="showPage('material')"><b>📦</b>物料</button>
   <button data-nav="report" onclick="showPage('report')"><b>◔</b>报表</button>
 </div></div>
 
 <script>
-const STORAGE_KEY = "yigendan_v4_stable";
-
-function $(id){ return document.getElementById(id); }
-
-function esc(value){
-  return String(value ?? "").replace(/[&<>"']/g, function(s){
-    return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[s];
-  });
-}
-
-function uid(prefix){
-  return prefix + "-" + Date.now() + "-" + Math.floor(Math.random()*1000);
-}
-
-function safeNumber(v){
-  const n = Number(v);
-  return Number.isFinite(n) ? n : 0;
-}
-
-function loadData(){
-  try{
-    const raw = localStorage.getItem(STORAGE_KEY);
-    if(!raw) return defaultData();
-    const obj = JSON.parse(raw);
-    if(!obj.products || !obj.boms || !obj.stocks || !obj.orders) return defaultData();
-    obj.logs = obj.logs || [];
-    return obj;
-  }catch(e){
-    alert("本地数据损坏，已自动恢复演示数据");
-    return defaultData();
-  }
-}
-
-function saveData(){
-  try{
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
-  }catch(e){
-    alert("保存失败：浏览器本地存储空间不足，请先备份并清理数据");
-  }
-}
-
+const STORAGE_KEY="yigendan_v4_stable";
+function $(id){return document.getElementById(id)}
+function uid(p){return p+"-"+Date.now()+"-"+Math.floor(Math.random()*1000)}
+function n(v){const x=Number(v);return Number.isFinite(x)?x:0}
+function esc(v){return String(v??"").replace(/[&<>"']/g,s=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[s]))}
+function today(){return new Date().toISOString().slice(0,10)}
 function defaultData(){
-  return {
-    products:[
-      {id:uid("P"),code:"A001",name:"女童泳衣",sizes:["S","M","L","XL"],colors:["粉色","蓝色"]}
-    ],
-    boms:[
-      {id:uid("B"),code:"A001",name:"面料",spec:"粉色涤纶",usage:1.2,price:15,unit:"米"},
-      {id:uid("B"),code:"A001",name:"拉链",spec:"30cm",usage:1,price:1.5,unit:"条"},
-      {id:uid("B"),code:"A001",name:"吊牌",spec:"通用",usage:1,price:0.2,unit:"个"}
-    ],
-    stocks:[
-      {id:uid("S"),name:"面料",spec:"粉色涤纶",stock:200,onway:100,unit:"米"},
-      {id:uid("S"),name:"拉链",spec:"30cm",stock:400,onway:0,unit:"条"},
-      {id:uid("S"),name:"吊牌",spec:"通用",stock:100,onway:100,unit:"个"}
-    ],
-    orders:[],
-    logs:[]
-  };
+  return {products:[{id:uid("P"),code:"A001",name:"女童泳衣",sizes:["90","100","110","120","130"],colors:["粉色","蓝色"],salePrice:89,otherCost:3}],
+  boms:[{id:uid("B"),code:"A001",category:"面料",name:"面料",spec:"粉色涤纶",unit:"米",usage:1.2,price:15,supplier:""},{id:uid("B"),code:"A001",category:"辅料",name:"拉链",spec:"30cm",unit:"条",usage:1,price:1.5,supplier:""}],
+  materialStocks:[{id:uid("MS"),name:"面料",spec:"粉色涤纶",unit:"米",stock:200,onway:100},{id:uid("MS"),name:"拉链",spec:"30cm",unit:"条",stock:400,onway:0}],
+  finishedStocks:[],countRecords:[],finishedInRecords:[],orders:[],logs:[],materialNames:["面料","里布","外纱","拉链","花边","吊牌","包装袋","工费"]};
 }
-
-let data = loadData();
-
-if(!data.orders.length){
-  data.orders.push(createOrderObject("A001","粉色",{S:50,M:100,L:100,XL:50},"ORD-20260101-001"));
-  saveData();
+function loadData(){
+  try{let d=JSON.parse(localStorage.getItem(STORAGE_KEY)||"null")||defaultData();
+    d.products=d.products||[]; d.boms=d.boms||[]; d.orders=d.orders||[]; d.logs=d.logs||[];
+    d.materialStocks=d.materialStocks||d.stocks||[]; d.finishedStocks=d.finishedStocks||[]; d.countRecords=d.countRecords||[]; d.finishedInRecords=d.finishedInRecords||[];
+    d.materialNames=d.materialNames||["面料","里布","外纱","拉链","花边","吊牌","包装袋","工费"];
+    d.products.forEach(p=>{p.sizes=p.sizes||[];p.colors=p.colors||[];p.salePrice=n(p.salePrice);p.otherCost=n(p.otherCost)});
+    return d;
+  }catch(e){alert("本地数据损坏，已加载演示数据");return defaultData();}
 }
+let data=loadData();
+function save(){try{localStorage.setItem(STORAGE_KEY,JSON.stringify(data))}catch(e){alert("保存失败，请先备份数据")}}
 
-function getProduct(code){
-  return data.products.find(p => p.code === code);
+function getProduct(code){return data.products.find(p=>p.code===code)}
+function getBoms(code){return data.boms.filter(b=>b.code===code)}
+function materialKey(name,spec){return name+"||"+spec}
+function getMatStock(name,spec){return data.materialStocks.find(s=>s.name===name&&s.spec===spec)||{stock:0,onway:0,unit:""}}
+function ensureMatStock(b){if(!data.materialStocks.some(s=>s.name===b.name&&s.spec===b.spec)){data.materialStocks.push({id:uid("MS"),name:b.name,spec:b.spec,unit:b.unit,stock:0,onway:0})}}
+function getFinished(code,color){return data.finishedStocks.find(s=>s.code===code&&s.color===color)}
+function getFinishedQty(code,color,size){const r=getFinished(code,color);return r?n((r.stock||{})[size]):0}
+function setFinishedQty(code,color,size,qty){let r=getFinished(code,color);if(!r){r={id:uid("FS"),code,color,stock:{},updatedAt:""};data.finishedStocks.push(r)}r.stock[size]=Math.max(0,n(qty));r.updatedAt=new Date().toISOString()}
+function addFinishedQty(code,color,size,qty){setFinishedQty(code,color,size,getFinishedQty(code,color,size)+n(qty))}
+function isOpenStatus(s){return !["已入库","已取消"].includes(s)}
+function getTransitQty(code,color,size){return data.orders.filter(o=>o.code===code&&isOpenStatus(o.status)).reduce((sum,o)=>sum+n((((o.colorQty||{})[color]||{})[size])),0)}
+function snapshotBoms(code){return getBoms(code).map(b=>({...b,usage:n(b.usage),price:n(b.price)}))}
+function calcStatus(need,stock,onway){need=n(need);stock=n(stock);onway=n(onway);if(stock>=need)return{need:0,status:"齐套",cls:"ok"};if(stock+onway>=need)return{need:0,status:"部分在途",cls:"warn"};return{need:+(need-stock-onway).toFixed(2),status:"待采购",cls:"bad"}}
+function calcOrder(order){
+  const p=getProduct(order.code)||{salePrice:0,otherCost:0};
+  const qty=Object.values(order.colorQty||{}).reduce((s,map)=>s+Object.values(map||{}).reduce((a,b)=>a+n(b),0),0);
+  const boms=order.bomSnapshot||snapshotBoms(order.code);
+  const materials=boms.map(b=>{const ms=getMatStock(b.name,b.spec);const total=+(n(b.usage)*qty).toFixed(2);const st=calcStatus(total,n(ms.stock),n(ms.onway));return{...b,totalNeed:total,stock:n(ms.stock),onway:n(ms.onway),needOrder:st.need,status:st.status,cls:st.cls,cost:+(total*n(b.price)).toFixed(2),unitPrice:+(n(b.usage)*n(b.price)).toFixed(2)}})
+  const unitCost=+(materials.reduce((s,m)=>s+n(m.unitPrice),0)+n(p.otherCost)).toFixed(2);
+  const totalCost=+(unitCost*qty).toFixed(2);
+  const profitPer=+(n(p.salePrice)-unitCost).toFixed(2);
+  const totalProfit=+(profitPer*qty).toFixed(2);
+  const margin=n(p.salePrice)?+((profitPer/n(p.salePrice))*100).toFixed(1):0;
+  const ready=materials.filter(m=>m.status==="齐套").length;
+  return{...order,totalQty:qty,materials,unitCost,totalCost,profitPer,totalProfit,margin,readyRate:materials.length?Math.round(ready/materials.length*100):0,warningCount:isOpenStatus(order.status)?materials.filter(m=>m.status!=="齐套").length:0}
 }
+function recalcOrders(){data.orders=data.orders.map(calcOrder);save()}
 
-function getBoms(code){
-  return data.boms.filter(b => b.code === code);
-}
+let tempSizes=[];
+function addTempSize(){const size=$("pSizeOne").value.trim();if(!size)return alert("请输入尺码");if(tempSizes.includes(size))return alert("尺码已存在");tempSizes.push(size);$("pSizeOne").value="";renderTempSizes()}
+function removeTempSize(i){tempSizes.splice(i,1);renderTempSizes()}
+function renderTempSizes(){const box=$("sizeChipList");if(!box)return;box.innerHTML=tempSizes.length?tempSizes.map((s,i)=>`<span class="chip">${esc(s)}<button class="chip-remove" onclick="removeTempSize(${i})">×</button></span>`).join(""):`<div class="sub">还没有添加尺码</div>`}
+function addProduct(){const code=$("pCode").value.trim(),name=$("pName").value.trim();const pending=$("pSizeOne").value.trim();const sizes=tempSizes.slice();if(pending&&!sizes.includes(pending))sizes.push(pending);const colors=$("pColors").value.split(",").map(x=>x.trim()).filter(Boolean);if(!code||!name||!sizes.length)return alert("请填写货号、品名，并至少添加一个尺码");if(data.products.some(p=>p.code===code))return alert("货号已存在");data.products.push({id:uid("P"),code,name,sizes,colors,salePrice:n($("pSalePrice").value),otherCost:n($("pOtherCost").value)});tempSizes=[];$("pCode").value=$("pName").value=$("pSizeOne").value=$("pColors").value=$("pSalePrice").value=$("pOtherCost").value="";save();renderAll();alert("产品已保存")}
+function renderProducts(){ $("productList").innerHTML=data.products.map(p=>`<div class="item"><div class="item-head"><b>${esc(p.code)}</b><span class="tag gray">${esc(p.name)}</span></div>颜色：${p.colors.map(esc).join("、")}<br>尺码：${p.sizes.map(esc).join("、")}<br>售价：${p.salePrice||0}　其他费用：${p.otherCost||0}<br><button class="btn-small btn-red" onclick="deleteProduct('${esc(p.code)}')">删除</button></div>`).join("")||`<div class="empty">暂无产品</div>`}
+function deleteProduct(code){if(data.orders.some(o=>o.code===code))return alert("已有生产单，不能删除");if(!confirm("确定删除产品和该货号BOM？"))return;data.products=data.products.filter(p=>p.code!==code);data.boms=data.boms.filter(b=>b.code!==code);save();renderAll()}
 
-function stockKey(name,spec){
-  return name + "||" + spec;
-}
+function renderCountForm(){const p=getProduct($("countProduct").value);if(!p){$("countInputs").innerHTML="";return}const colors=p.colors||[];$("countColorList").innerHTML=colors.map(c=>`<option value="${esc(c)}">`).join("");const color=$("countColor").value.trim()||colors[0]||"";if(!$("countColor").value&&color)$("countColor").value=color;$("countInputs").innerHTML=p.sizes.map(size=>`<label>${esc(size)} 当前库存</label><input class="countQty" data-size="${esc(size)}" type="number" value="${getFinishedQty(p.code,color,size)}">`).join("")}
+function saveCount(){const p=getProduct($("countProduct").value),color=$("countColor").value.trim();if(!p||!color)return alert("请选择货号并填写颜色");const stock={};document.querySelectorAll(".countQty").forEach(i=>{stock[i.dataset.size]=n(i.value);setFinishedQty(p.code,color,i.dataset.size,n(i.value))});data.countRecords.push({id:uid("CR"),ts:Date.now(),date:new Date().toLocaleString(),code:p.code,productName:p.name,color,stock});save();renderAll();alert("盘点已保存")}
+function renderCountRecords(){ $("countRecords").innerHTML=data.countRecords.slice().reverse().slice(0,10).map(r=>`<div class="item"><b>${esc(r.code)} ${esc(r.color)}</b><br>${esc(r.date)}<br>${Object.entries(r.stock).map(([s,q])=>`${esc(s)}:${q}`).join("　")}</div>`).join("")||`<div class="empty">暂无盘点记录</div>`; renderSalesEstimate()}
+function renderSalesEstimate(){const p=getProduct($("countProduct").value);if(!p){$("salesEstimate").innerHTML="";return}const color=$("countColor").value.trim();const list=data.countRecords.filter(r=>r.code===p.code&&r.color===color).sort((a,b)=>a.ts-b.ts);if(list.length<2){$("salesEstimate").innerHTML=`<div class="empty">至少两次盘点后，才能反推销量</div>`;return}const prev=list[list.length-2],cur=list[list.length-1];let html=`<div class="sub">周期：${esc(prev.date)} → ${esc(cur.date)}</div>`;p.sizes.forEach(size=>{const inbound=data.finishedInRecords.filter(x=>x.code===p.code&&x.color===color&&x.size===size&&x.ts>prev.ts&&x.ts<=cur.ts).reduce((s,x)=>s+n(x.qty),0);const sold=Math.max(0,n(prev.stock[size])+inbound-n(cur.stock[size]));html+=`<div class="item">${esc(size)}码：销售 ${sold} 件（入库 ${inbound}）</div>`});$("salesEstimate").innerHTML=html}
 
-function getStockByMaterial(name,spec){
-  return data.stocks.find(s => s.name === name && s.spec === spec) || {stock:0,onway:0,unit:""};
-}
-
-function snapshotBoms(code){
-  return getBoms(code).map(b => ({
-    bom_id:b.id,
-    code:b.code,
-    name:b.name,
-    spec:b.spec,
-    usage:safeNumber(b.usage),
-    price:safeNumber(b.price),
-    unit:b.unit
-  }));
-}
-
-function calcStatus(totalNeed,currentStock,onway){
-  totalNeed=safeNumber(totalNeed);currentStock=safeNumber(currentStock);onway=safeNumber(onway);
-  if(currentStock>=totalNeed) return {need:0,status:"齐套",cls:"ok"};
-  if(currentStock+onway>=totalNeed) return {need:0,status:"部分在途",cls:"warn"};
-  return {need:Number((totalNeed-currentStock-onway).toFixed(2)),status:"待采购",cls:"bad"};
-}
-
-function createOrderObject(code,color,sizeMap,id){
-  const product = getProduct(code) || {name:"未知产品"};
-  const totalQty = Object.values(sizeMap || {}).reduce((sum,val)=>sum+safeNumber(val),0);
-  const bomSnapshot = snapshotBoms(code);
-  return {
-    id:id || "ORD-" + Date.now(),
-    code,
-    product_name:product.name,
-    color,
-    sizeMap,
-    total_qty:totalQty,
-    status:"active",
-    created:new Date().toISOString().slice(0,10),
-    bomSnapshot,
-    issued:{},
-    materials:[]
-  };
-}
-
-function calcOrderMaterials(order){
-  const materials = (order.bomSnapshot || []).map(bom => {
-    const st = getStockByMaterial(bom.name,bom.spec);
-    const totalNeed = Number((safeNumber(bom.usage)*safeNumber(order.total_qty)).toFixed(2));
-    const issuedQty = safeNumber((order.issued || {})[stockKey(bom.name,bom.spec)]);
-    const remainNeedAfterIssue = Math.max(0, Number((totalNeed - issuedQty).toFixed(2)));
-    const result = order.status === "active"
-      ? calcStatus(remainNeedAfterIssue, safeNumber(st.stock), safeNumber(st.onway))
-      : {need:0,status:order.status === "completed" ? "已完成" : "已取消",cls:"gray"};
-
-    return {
-      ...bom,
-      total_need:totalNeed,
-      issued_qty:issuedQty,
-      remain_need:remainNeedAfterIssue,
-      current_stock:safeNumber(st.stock),
-      ordered_on_way:safeNumber(st.onway),
-      need_order:result.need,
-      status:result.status,
-      cls:result.cls,
-      cost:Number((totalNeed*safeNumber(bom.price)).toFixed(2))
-    };
+function getRecentSalesBySize(code,color){
+  const p=getProduct(code);
+  const result={};
+  if(!p||!color) return result;
+  p.sizes.forEach(size=>result[size]=0);
+  const list=data.countRecords.filter(r=>r.code===code&&r.color===color).sort((a,b)=>a.ts-b.ts);
+  if(list.length<2) return result;
+  const prev=list[list.length-2],cur=list[list.length-1];
+  p.sizes.forEach(size=>{
+    const inbound=data.finishedInRecords.filter(x=>x.code===code&&x.color===color&&x.size===size&&x.ts>prev.ts&&x.ts<=cur.ts).reduce((s,x)=>s+n(x.qty),0);
+    result[size]=Math.max(0,n(prev.stock[size])+inbound-n(cur.stock[size]));
   });
-
-  const readyCount = materials.filter(m => m.status === "齐套" || m.status === "已完成").length;
-  const readyRate = materials.length ? Math.round((readyCount / materials.length) * 100) : 0;
-  const warningCount = order.status === "active" ? materials.filter(m => m.status !== "齐套").length : 0;
-
-  return {...order,materials,ready_rate:readyRate,warning_count:warningCount};
+  return result;
+}
+function hasRecentSales(code,color){
+  const sales=getRecentSalesBySize(code,color);
+  return Object.values(sales).reduce((a,b)=>a+n(b),0)>0;
 }
 
-function recalcOrders(){
-  data.orders = data.orders.map(calcOrderMaterials);
-  saveData();
+function renderOrderForm(){
+  const p=getProduct($("orderProduct").value);
+  if(!p){$("orderInputs").innerHTML="";return}
+  const colors=p.colors||[];
+  $("orderColorList").innerHTML=colors.map(c=>`<option value="${esc(c)}">`).join("");
+  const color=$("orderColor").value.trim()||colors[0]||"";
+  if(!$("orderColor").value&&color)$("orderColor").value=color;
+  const recentSales=getRecentSalesBySize(p.code,color);
+  const hasSales=Object.values(recentSales).reduce((a,b)=>a+n(b),0)>0;
+  $("orderInputs").innerHTML=p.sizes.map(size=>{
+    const stock=getFinishedQty(p.code,color,size);
+    const transit=getTransitQty(p.code,color,size);
+    const sold=n(recentSales[size]);
+    const suggest=hasSales?Math.max(0,sold-transit):0;
+    return `<div class="item"><b>${esc(size)}码</b><br>现货：${stock}　在途：${transit}　最近销量：${sold}<div class="row3"><div><label>目标库存</label><input class="targetQty" data-size="${esc(size)}" type="number" placeholder="可不填"></div><div><label>建议</label><input class="suggestQty" data-size="${esc(size)}" type="number" value="${suggest}" readonly></div><div><label>下单</label><input class="orderQty" data-size="${esc(size)}" type="number" placeholder="0"></div></div></div>`;
+  }).join("");
 }
-
-function showPage(id){
-  document.querySelectorAll(".page").forEach(p=>p.classList.remove("active"));
-  $(id).classList.add("active");
-  document.querySelectorAll(".nav button").forEach(btn=>btn.classList.toggle("active",btn.dataset.nav===id));
-  renderAll();
-  window.scrollTo(0,0);
-}
-
-function renderAll(){
-  recalcOrders();
-  renderSelects();
-  renderHome();
-  renderOrders();
-  renderStock();
-  renderProducts();
-  renderBom();
-  renderWarnings();
-  renderLogs();
-  renderTempSizes();
-}
-
-function renderSelects(){
-  const productOptions = data.products.map(p=>`<option value="${esc(p.code)}">${esc(p.code)} - ${esc(p.name)}</option>`).join("");
-  $("orderProduct").innerHTML = productOptions;
-  $("bomProduct").innerHTML = productOptions;
-
-  $("stockMaterial").innerHTML = data.stocks.map((s,i)=>`<option value="${i}">${esc(s.name)} / ${esc(s.spec)}</option>`).join("");
-
-  const orderOptions = [`<option value="">不关联指令单</option>`].concat(
-    data.orders.filter(o=>o.status==="active").map(o=>`<option value="${esc(o.id)}">${esc(o.id)} - ${esc(o.product_name)}</option>`)
-  ).join("");
-  $("stockOrder").innerHTML = orderOptions;
-
-  renderSizeInputs();
-}
-
-function renderSizeInputs(){
-  const p = getProduct($("orderProduct").value);
-  if(!p){ $("sizeInputs").innerHTML = `<div class="empty">请先添加产品</div>`; return; }
-  $("sizeInputs").innerHTML = `<div class="title" style="font-size:16px">尺码数量</div>` + p.sizes.map(s=>`
-    <label>${esc(s)}</label>
-    <input class="sizeQty" data-size="${esc(s)}" type="number" placeholder="${esc(s)} 数量">
-  `).join("");
-}
-
-function renderHome(){
-  const activeOrders = data.orders.filter(o=>o.status==="active");
-  $("homeActiveCount").innerText = activeOrders.length;
-  $("homeWarnCount").innerText = getPurchaseSummary().reduce((sum,x)=>sum+(x.need_order>0?1:0),0);
-  $("homeOrders").innerHTML = data.orders.slice().reverse().slice(0,5).map(orderCard).join("") || `<div class="empty">暂无指令单</div>`;
-}
-
-function orderStatusTag(order){
-  if(order.status==="completed") return `<span class="tag ok">已完成</span>`;
-  if(order.status==="cancelled") return `<span class="tag gray">已取消</span>`;
-  return `<span class="tag ${order.warning_count ? "warn" : "ok"}">${order.warning_count ? "进行中-待处理" : "进行中-齐套"}</span>`;
-}
-
-function orderCard(order){
-  return `
-    <div class="item" onclick="openOrder('${esc(order.id)}')">
-      <div class="item-head">
-        <div><b>${esc(order.id)}</b></div>
-        ${orderStatusTag(order)}
-      </div>
-      <span>${esc(order.code)} ${esc(order.product_name)} · ${esc(order.color)} · ${order.total_qty}件</span>
-      <div class="progress"><div class="bar" style="width:${order.ready_rate || 0}%"></div></div>
-      齐套率：${order.ready_rate || 0}%　预警：${order.warning_count || 0}
-    </div>
-  `;
-}
-
-function createOrder(){
-  const code = $("orderProduct").value;
-  const color = $("orderColor").value.trim();
-  const sizeMap = {};
-  document.querySelectorAll(".sizeQty").forEach(input=>{
-    sizeMap[input.dataset.size] = safeNumber(input.value);
+function setInputBySize(className,size,value){
+  document.querySelectorAll("." + className).forEach(input=>{
+    if(input.dataset.size===size) input.value=value;
   });
-  const totalQty = Object.values(sizeMap).reduce((a,b)=>a+b,0);
-
-  if(!code || !color || totalQty<=0){ alert("请填写货号、颜色和尺码数量"); return; }
-  if(!getBoms(code).length){ alert("该货号还没有物料 BOM，请先去“物料”页面添加物料"); return; }
-
-  data.orders.push(createOrderObject(code,color,sizeMap));
-  saveData();
-  $("orderColor").value = "";
-  renderAll();
-  alert("指令单创建成功，并已锁定当前 BOM 快照");
-  showPage("orders");
 }
-
-function renderOrders(){
-  const f = $("orderFilter").value;
-  let list = data.orders.slice().reverse();
-  if(f !== "all") list = list.filter(o=>o.status===f);
-  $("orderList").innerHTML = list.map(orderCard).join("") || `<div class="empty">暂无指令单</div>`;
-}
-
-function openOrder(id){
-  const order = data.orders.find(o=>o.id===id);
-  if(!order) return;
-
-  const sizeRows = Object.entries(order.sizeMap).map(([s,q])=>`<tr><td>${esc(s)}</td><td>${q}</td></tr>`).join("");
-  const materialRows = (order.materials || []).map(m=>`
-    <tr>
-      <td>${esc(m.name)}<br><span class="sub">${esc(m.spec)}</span></td>
-      <td>${m.total_need}</td>
-      <td>${m.issued_qty || 0}</td>
-      <td>${m.remain_need}</td>
-      <td>${m.current_stock}</td>
-      <td>${m.ordered_on_way}</td>
-      <td>${m.need_order}</td>
-      <td><span class="tag ${m.cls}">${m.status}</span></td>
-      <td>${m.cost}</td>
-    </tr>
-  `).join("");
-
-  $("detailBox").innerHTML = `
-    <div class="card">
-      <div class="title">${esc(order.id)} <button class="btn-small btn-gray" onclick="showPage('orders')">返回</button></div>
-      ${esc(order.code)} - ${esc(order.product_name)}<br>
-      颜色：${esc(order.color)}　总数：${order.total_qty}件<br>
-      状态：${orderStatusTag(order)}<br>
-      齐套率：${order.ready_rate || 0}%　预警：${order.warning_count || 0}
-      <hr>
-      <button class="btn-green btn-small" onclick="setOrderStatus('${esc(order.id)}','completed')">标记完成</button>
-      <button class="btn-orange btn-small" onclick="setOrderStatus('${esc(order.id)}','active')">恢复进行中</button>
-      <button class="btn-gray btn-small" onclick="setOrderStatus('${esc(order.id)}','cancelled')">取消指令单</button>
-      <button class="btn-red btn-small" onclick="deleteOrder('${esc(order.id)}')">删除</button>
-    </div>
-    <div class="card"><div class="title">尺码配比</div><div class="table-wrap"><table class="table" style="min-width:0"><tr><th>尺码</th><th>数量</th></tr>${sizeRows}</table></div></div>
-    <div class="card"><div class="title">物料明细（BOM快照）</div><div class="table-wrap"><table class="table">
-      <tr><th>物料</th><th>总需用</th><th>已领</th><th>剩余需求</th><th>库存</th><th>在途</th><th>还需</th><th>状态</th><th>成本</th></tr>
-      ${materialRows}
-    </table></div></div>
-  `;
-  showPage("detail");
-}
-
-function setOrderStatus(id,status){
-  const o = data.orders.find(x=>x.id===id);
-  if(!o) return;
-  o.status = status;
-  saveData();
-  renderAll();
-  openOrder(id);
-}
-
-function deleteOrder(id){
-  if(!confirm("确定删除这个指令单？")) return;
-  data.orders = data.orders.filter(o=>o.id!==id);
-  saveData();
-  renderAll();
-  showPage("orders");
-}
-
-function stockOperation(){
-  const idx = Number($("stockMaterial").value);
-  const qty = safeNumber($("stockQty").value);
-  const type = $("stockType").value;
-  const orderId = $("stockOrder").value;
-  const stock = data.stocks[idx];
-
-  if(!stock || qty <= 0){ alert("请选择物料并填写正确数量"); return; }
-
-  if(type === "in"){
-    stock.stock = Number((safeNumber(stock.stock)+qty).toFixed(2));
-    stock.onway = Math.max(0, Number((safeNumber(stock.onway)-qty).toFixed(2)));
-  }
-
-  if(type === "out"){
-    if(safeNumber(stock.stock) < qty){ alert("库存不足，不能出库"); return; }
-    stock.stock = Number((safeNumber(stock.stock)-qty).toFixed(2));
-
-    if(orderId){
-      const order = data.orders.find(o=>o.id===orderId);
-      if(order){
-        order.issued = order.issued || {};
-        const k = stockKey(stock.name,stock.spec);
-        order.issued[k] = Number((safeNumber(order.issued[k])+qty).toFixed(2));
+function autoFillByTarget(){
+  const p=getProduct($("orderProduct").value),color=$("orderColor").value.trim();
+  if(!p)return;
+  const totalTarget=n($("orderTargetTotal").value);
+  const sales=getRecentSalesBySize(p.code,color);
+  const salesTotal=Object.values(sales).reduce((a,b)=>a+n(b),0);
+  if(totalTarget>0){
+    p.sizes.forEach(size=>{
+      let target=0;
+      if(salesTotal>0){
+        target=Math.round(totalTarget*n(sales[size])/salesTotal);
+      }else{
+        target=Math.round(totalTarget/p.sizes.length);
       }
-    }
-  }
-
-  if(type === "onway"){
-    stock.onway = Number((safeNumber(stock.onway)+qty).toFixed(2));
-  }
-
-  data.logs.push({
-    id:uid("L"),
-    date:new Date().toLocaleString(),
-    name:stock.name,
-    spec:stock.spec,
-    type,
-    qty,
-    orderId,
-    remark:$("stockRemark").value || ""
-  });
-
-  saveData();
-  $("stockQty").value = "";
-  $("stockRemark").value = "";
-  renderAll();
-  alert("库存操作成功，指令单和采购建议已重新计算");
-}
-
-function renderStock(){
-  const kw = $("stockSearch").value.trim();
-  const list = data.stocks.filter(s=>!kw || s.name.includes(kw) || s.spec.includes(kw));
-
-  $("stockList").innerHTML = list.map((s,i)=>`
-    <div class="item">
-      <div class="item-head"><b>${esc(s.name)}</b><span class="tag gray">${esc(s.unit)}</span></div>
-      规格：${esc(s.spec)}<br>
-      当前库存：${s.stock}${esc(s.unit)}<br>
-      已下单未到：${s.onway}${esc(s.unit)}<br>
-      <button class="btn-small btn-gray" onclick="editStock(${data.stocks.indexOf(s)})">编辑库存</button>
-    </div>
-  `).join("") || `<div class="empty">暂无库存</div>`;
-}
-
-function editStock(index){
-  const s = data.stocks[index];
-  const stock = prompt("当前库存", s.stock);
-  if(stock===null) return;
-  const onway = prompt("已下单未到", s.onway);
-  if(onway===null) return;
-  s.stock = Math.max(0,safeNumber(stock));
-  s.onway = Math.max(0,safeNumber(onway));
-  saveData();
-  renderAll();
-}
-
-function renderLogs(){
-  const typeMap = {in:"入库",out:"出库",onway:"在途"};
-  $("logList").innerHTML = data.logs.slice().reverse().slice(0,20).map(l=>`
-    <div class="item">
-      <b>${esc(typeMap[l.type] || l.type)}</b>　${esc(l.name)} / ${esc(l.spec)}<br>
-      数量：${l.qty}　关联：${esc(l.orderId || "无")}<br>
-      <span class="sub">${esc(l.date)} ${esc(l.remark || "")}</span>
-    </div>
-  `).join("") || `<div class="empty">暂无流水</div>`;
-}
-
-let tempSizes = [];
-
-function addTempSize(){
-  const input = $("pSizeOne");
-  const size = input.value.trim();
-  if(!size){ alert("请输入尺码"); return; }
-  if(tempSizes.includes(size)){ alert("这个尺码已经添加过了"); return; }
-  tempSizes.push(size);
-  input.value = "";
-  renderTempSizes();
-}
-
-function removeTempSize(index){
-  tempSizes.splice(index, 1);
-  renderTempSizes();
-}
-
-function renderTempSizes(){
-  const box = $("sizeChipList");
-  if(!box) return;
-  if(!tempSizes.length){
-    box.innerHTML = `<div class="sub">还没有添加尺码</div>`;
-    return;
-  }
-  box.innerHTML = tempSizes.map((size,index)=>`<span class="chip">${esc(size)}<button class="chip-remove" onclick="removeTempSize(${index})">×</button></span>`).join("");
-}
-
-function addProduct(){
-  const code = $("pCode").value.trim();
-  const name = $("pName").value.trim();
-  const pendingSize = $("pSizeOne").value.trim();
-  const sizes = tempSizes.slice();
-  if(pendingSize && !sizes.includes(pendingSize)) sizes.push(pendingSize);
-  const colors = $("pColors").value.split(",").map(x=>x.trim()).filter(Boolean);
-
-  if(!code || !name || !sizes.length){ alert("请填写货号、品名，并至少添加一个尺码"); return; }
-  if(data.products.some(p=>p.code===code)){ alert("货号已存在"); return; }
-
-  data.products.push({id:uid("P"),code,name,sizes,colors});
-  saveData();
-  $("pCode").value = $("pName").value = $("pSizeOne").value = $("pColors").value = "";
-  tempSizes = [];
-  renderAll();
-  renderTempSizes();
-  alert("产品保存成功");
-}
-
-function renderProducts(){
-  $("productList").innerHTML = data.products.map(p=>`
-    <div class="item">
-      <div class="item-head"><b>${esc(p.code)}</b><span class="tag gray">${esc(p.name)}</span></div>
-      尺码：${p.sizes.map(esc).join("、")}<br>
-      颜色：${(p.colors || []).map(esc).join("、")}<br>
-      <button class="btn-small btn-red" onclick="deleteProduct('${esc(p.code)}')">删除产品</button>
-    </div>
-  `).join("") || `<div class="empty">暂无产品</div>`;
-}
-
-function deleteProduct(code){
-  if(data.orders.some(o=>o.code===code)){
-    alert("该货号已有指令单，不能直接删除。可先取消/删除对应指令单。");
-    return;
-  }
-  if(!confirm("确定删除产品？对应 BOM 也会删除。")) return;
-  data.products = data.products.filter(p=>p.code!==code);
-  data.boms = data.boms.filter(b=>b.code!==code);
-  saveData();
-  renderAll();
-}
-
-function addBom(){
-  const item = {
-    id:uid("B"),
-    code:$("bomProduct").value,
-    name:$("bomName").value.trim(),
-    spec:$("bomSpec").value.trim(),
-    usage:safeNumber($("bomUsage").value),
-    price:safeNumber($("bomPrice").value),
-    unit:$("bomUnit").value.trim() || "个"
-  };
-
-  if(!item.code || !item.name || !item.spec || item.usage <= 0){ alert("请填写完整物料信息"); return; }
-
-  data.boms.push(item);
-
-  if(!data.stocks.some(s=>s.name===item.name && s.spec===item.spec)){
-    data.stocks.push({id:uid("S"),name:item.name,spec:item.spec,stock:0,onway:0,unit:item.unit});
-  }
-
-  saveData();
-  $("bomName").value = $("bomSpec").value = $("bomUsage").value = $("bomPrice").value = $("bomUnit").value = "";
-  renderAll();
-  alert("物料保存成功");
-}
-
-function renderBom(){
-  $("bomList").innerHTML = data.boms.map(b=>`
-    <div class="item">
-      <div class="item-head"><b>${esc(b.name)}</b><span class="tag gray">${esc(b.code)}</span></div>
-      规格：${esc(b.spec)}<br>
-      单耗：${b.usage}${esc(b.unit)}　单价：${b.price}<br>
-      <button class="btn-small btn-gray" onclick="editBom('${esc(b.id)}')">编辑</button>
-      <button class="btn-small btn-red" onclick="deleteBom('${esc(b.id)}')">删除</button>
-    </div>
-  `).join("") || `<div class="empty">暂无物料</div>`;
-}
-
-function editBom(id){
-  const b = data.boms.find(x=>x.id===id);
-  if(!b) return;
-  const usage = prompt("单件用量", b.usage);
-  if(usage===null) return;
-  const price = prompt("单价", b.price);
-  if(price===null) return;
-  b.usage = Math.max(0,safeNumber(usage));
-  b.price = Math.max(0,safeNumber(price));
-  saveData();
-  renderAll();
-  alert("BOM 已修改。注意：已创建指令单使用旧 BOM 快照，不会被影响。");
-}
-
-function deleteBom(id){
-  if(!confirm("确定删除这个 BOM 物料？已创建指令单不受影响。")) return;
-  data.boms = data.boms.filter(b=>b.id!==id);
-  saveData();
-  renderAll();
-}
-
-function getPurchaseSummary(){
-  const map = {};
-  data.orders.filter(o=>o.status==="active").forEach(o=>{
-    (o.materials || []).forEach(m=>{
-      const k = stockKey(m.name,m.spec);
-      if(!map[k]){
-        const st = getStockByMaterial(m.name,m.spec);
-        map[k] = {name:m.name,spec:m.spec,unit:m.unit,total_need:0,stock:safeNumber(st.stock),onway:safeNumber(st.onway),need_order:0};
-      }
-      map[k].total_need += safeNumber(m.remain_need);
+      setInputBySize("targetQty",size,target);
     });
-  });
-
-  Object.values(map).forEach(x=>{
-    x.total_need = Number(x.total_need.toFixed(2));
-    x.need_order = Math.max(0, Number((x.total_need - x.stock - x.onway).toFixed(2)));
-  });
-
-  return Object.values(map).filter(x=>x.need_order>0).sort((a,b)=>b.need_order-a.need_order);
-}
-
-function renderWarnings(){
-  const summary = getPurchaseSummary();
-
-  $("purchaseList").innerHTML = summary.map(x=>`
-    <div class="item">
-      <b>${esc(x.name)}</b> / ${esc(x.spec)}<br>
-      进行中总需求：${x.total_need}${esc(x.unit)}<br>
-      库存：${x.stock}${esc(x.unit)}　在途：${x.onway}${esc(x.unit)}<br>
-      建议采购：<span class="danger-text">${x.need_order}</span>${esc(x.unit)}
-    </div>
-  `).join("") || `<div class="empty">暂无采购建议，进行中订单物料齐套</div>`;
-
-  const rows = [];
-  data.orders.filter(o=>o.status==="active").forEach(o=>{
-    (o.materials || []).filter(m=>m.status!=="齐套").forEach(m=>{
-      rows.push({...m,order_id:o.id,product:o.product_name,color:o.color});
-    });
-  });
-
-  $("warningList").innerHTML = rows.map(row=>`
-    <div class="item">
-      <b>${esc(row.order_id)}</b><br>
-      ${esc(row.product)} · ${esc(row.color)}<br>
-      物料：${esc(row.name)} / ${esc(row.spec)}<br>
-      还需下单：<span class="danger-text">${row.need_order}</span>${esc(row.unit)}<br>
-      <span class="tag ${row.cls}">${row.status}</span>
-    </div>
-  `).join("") || `<div class="empty">暂无逐单缺料</div>`;
-}
-
-function exportOrderCSV(){
-  const rows = [["指令单","状态","货号","品名","颜色","总数量","齐套率","预警数","物料","规格","总需用","已领","剩余需求","库存","在途","还需","状态","成本"]];
-  data.orders.forEach(o=>{
-    (o.materials || []).forEach(m=>{
-      rows.push([o.id,o.status,o.code,o.product_name,o.color,o.total_qty,o.ready_rate,o.warning_count,m.name,m.spec,m.total_need,m.issued_qty,m.remain_need,m.current_stock,m.ordered_on_way,m.need_order,m.status,m.cost]);
-    });
-  });
-  downloadCSV("衣跟单指令单明细.csv",rows);
-}
-
-function exportPurchaseCSV(){
-  const rows = [["物料","规格","单位","进行中总需求","库存","在途","建议采购"]];
-  getPurchaseSummary().forEach(x=>rows.push([x.name,x.spec,x.unit,x.total_need,x.stock,x.onway,x.need_order]));
-  downloadCSV("衣跟单采购建议.csv",rows);
-}
-
-function downloadCSV(filename,rows){
-  const csv = rows.map(row=>row.map(v=>`"${String(v ?? "").replace(/"/g,'""')}"`).join(",")).join("\n");
-  const blob = new Blob(["\ufeff"+csv],{type:"text/csv;charset=utf-8"});
-  const link = document.createElement("a");
-  link.href = URL.createObjectURL(blob);
-  link.download = filename;
-  link.click();
-}
-
-function backupData(){
-  $("backupBox").value = JSON.stringify(data);
-  $("backupBox").select();
-  alert("备份内容已生成，可以复制保存");
-}
-
-function restoreData(){
-  try{
-    const obj = JSON.parse($("backupBox").value);
-    if(!obj.products || !obj.boms || !obj.stocks || !obj.orders) throw new Error("格式不对");
-    data = obj;
-    saveData();
-    renderAll();
-    alert("导入成功");
-  }catch(e){
-    alert("导入失败：备份内容格式不对");
   }
+  document.querySelectorAll(".targetQty").forEach(i=>{
+    const size=i.dataset.size,target=n(i.value),stock=getFinishedQty(p.code,color,size),transit=getTransitQty(p.code,color,size);
+    const sug=Math.max(0,target-stock-transit);
+    setInputBySize("suggestQty",size,sug);
+  });
 }
-
-function resetDemo(){
-  if(confirm("确定恢复演示数据？当前数据会被清空")){
-    localStorage.removeItem(STORAGE_KEY);
-    location.reload();
-  }
+function copySuggestToOrder(){
+  document.querySelectorAll(".suggestQty").forEach(i=>{
+    setInputBySize("orderQty",i.dataset.size,i.value);
+  });
 }
+function clearOrderQty(){document.querySelectorAll(".orderQty").forEach(i=>i.value="")}
+function createOrder(){const p=getProduct($("orderProduct").value),color=$("orderColor").value.trim();if(!p||!color)return alert("请选择货号和颜色");const qtyMap={};document.querySelectorAll(".orderQty").forEach(i=>qtyMap[i.dataset.size]=n(i.value));const total=Object.values(qtyMap).reduce((a,b)=>a+n(b),0);if(total<=0)return alert("请填写下单数量");if(!getBoms(p.code).length)return alert("该货号还没有BOM，请先录入BOM");const order={id:"ORD-"+Date.now(),code:p.code,productName:p.name,colorQty:{[color]:qtyMap},status:"待生产",created:today(),dueDate:$("orderDue").value||"",bomSnapshot:snapshotBoms(p.code),note:""};data.orders.push(calcOrder(order));save();renderAll();alert("生产指令单已生成");showPage("orders")}
+function renderOrders(){const f=$("orderFilter").value;let list=data.orders.slice().reverse();if(f==="open")list=list.filter(o=>isOpenStatus(o.status));else if(f!=="all")list=list.filter(o=>o.status===f);$("orderList").innerHTML=list.map(orderCard).join("")||`<div class="empty">暂无生产单</div>`}
+function orderStatusTag(o){if(o.status==="已入库")return`<span class="tag ok">已入库</span>`;if(o.status==="已取消")return`<span class="tag gray">已取消</span>`;return`<span class="tag ${o.warningCount?'warn':'ok'}">${esc(o.status||"待生产")}</span>`}
+function orderCard(o){return`<div class="item" onclick="openOrder('${esc(o.id)}')"><div class="item-head"><b>${esc(o.id)}</b>${orderStatusTag(o)}</div>${esc(o.code)} ${esc(o.productName||o.product_name||"")} · ${o.totalQty||0}件<br>成本：${o.totalCost||0}　预计利润：${o.totalProfit||0}<div class="progress"><div class="bar" style="width:${o.readyRate||0}%"></div></div>齐套率：${o.readyRate||0}%　缺料：${o.warningCount||0}</div>`}
+function openOrder(id){const o=data.orders.find(x=>x.id===id);if(!o)return;const qtyRows=Object.entries(o.colorQty||{}).map(([color,map])=>`<tr><td>${esc(color)}</td>${Object.keys(map).map(s=>`<td>${esc(s)}:${n(map[s])}</td>`).join("")}</tr>`).join("");const matRows=(o.materials||[]).map(m=>`<tr><td>${esc(m.category||"")}</td><td>${esc(m.name)}<br><span class="sub">${esc(m.spec)}</span></td><td>${m.usage}</td><td>${m.price}</td><td>${m.totalNeed}</td><td>${m.needOrder}</td><td><span class="tag ${m.cls}">${m.status}</span></td><td>${m.cost}</td></tr>`).join("");$("detailBox").innerHTML=`<div class="card"><div class="title">${esc(o.id)} <button class="btn-small btn-gray" onclick="showPage('orders')">返回</button></div>${esc(o.code)} - ${esc(o.productName||"")}<br>总数：${o.totalQty||0}件　状态：${orderStatusTag(o)}<br>单件成本：${o.unitCost||0}　总成本：${o.totalCost||0}<br>单件利润：${o.profitPer||0}　总利润：${o.totalProfit||0}　利润率：${o.margin||0}%<hr><button class="btn-small btn-orange" onclick="setOrderStatus('${esc(o.id)}','生产中')">生产中</button><button class="btn-small btn-green" onclick="setOrderStatus('${esc(o.id)}','待入库')">待入库</button><button class="btn-small btn-green" onclick="confirmFinishedIn('${esc(o.id)}')">确认成品入库</button><button class="btn-small btn-red" onclick="confirmCancelOrder('${esc(o.id)}')">取消</button><button class="btn-small btn-red" onclick="deleteOrder('${esc(o.id)}')">删除</button></div><div class="card"><div class="title">颜色尺码数量</div><div class="table-wrap"><table class="table">${qtyRows}</table></div></div><div class="card"><div class="title">物料/成本</div><div class="table-wrap"><table class="table"><tr><th>类别</th><th>物料</th><th>单耗</th><th>单价</th><th>总需用</th><th>还需采购</th><th>状态</th><th>金额</th></tr>${matRows}</table></div></div>`;showPage("detail")}
+function setOrderStatus(id,status){const o=data.orders.find(x=>x.id===id);if(!o)return;o.status=status;save();renderAll();openOrder(id)}
+function confirmCancelOrder(id){if(confirm("确定取消这张生产单？取消后不能确认入库。"))setOrderStatus(id,"已取消")}
+function deleteOrder(id){const o=data.orders.find(x=>x.id===id);if(!o)return;if(o.status==="已入库")return alert("已入库的生产单不能直接删除，避免库存错误");if(o.status==="已取消")return alert("已取消的生产单不建议删除，请保留记录");if(!confirm("确定删除这个未入库生产单？"))return;data.orders=data.orders.filter(o=>o.id!==id);save();renderAll();showPage("orders")}
+function confirmFinishedIn(id){const o=data.orders.find(x=>x.id===id);if(!o)return;if(o.status==="已入库")return alert("这张单已经入库过了");if(o.status==="已取消")return alert("已取消的生产单不能入库");Object.entries(o.colorQty||{}).forEach(([color,map])=>{Object.entries(map).forEach(([size,qty])=>{if(n(qty)>0){addFinishedQty(o.code,color,size,n(qty));data.finishedInRecords.push({id:uid("FI"),ts:Date.now(),date:new Date().toLocaleString(),orderId:o.id,code:o.code,color,size,qty:n(qty)})}})});o.status="已入库";o.inDate=today();save();renderAll();alert("成品已自动入库");openOrder(id)}
 
+function addBom(){const b={id:uid("B"),code:$("bomProduct").value,category:$("bomCategory").value,name:$("bomName").value.trim(),spec:$("bomSpec").value.trim(),unit:$("bomUnit").value.trim()||"个",usage:n($("bomUsage").value),price:n($("bomPrice").value),supplier:$("bomSupplier").value.trim()};if(!b.code||!b.name||!b.spec||b.usage<=0)return alert("请填写完整BOM");data.boms.push(b);ensureMatStock(b);if(b.name&&!data.materialNames.includes(b.name))data.materialNames.push(b.name);["bomName","bomSpec","bomUnit","bomUsage","bomPrice","bomSupplier"].forEach(id=>$(id).value="");save();renderAll();alert("BOM已保存")}
+function renderBom(){ $("bomList").innerHTML=data.boms.map(b=>`<div class="item"><div class="item-head"><b>${esc(b.name)}</b><span class="tag gray">${esc(b.code)}</span></div>类别：${esc(b.category)}　规格：${esc(b.spec)}<br>单耗：${b.usage}${esc(b.unit)}　单价：${b.price}　供应商：${esc(b.supplier||"")}<br><button class="btn-small btn-red" onclick="deleteBom('${esc(b.id)}')">删除</button></div>`).join("")||`<div class="empty">暂无BOM</div>`}
+function deleteBom(id){if(!confirm("确定删除BOM？已生成生产单不受影响"))return;data.boms=data.boms.filter(b=>b.id!==id);save();renderAll()}
+function materialStockOp(){const idx=Number($("matStockSelect").value),qty=n($("matStockQty").value),type=$("matStockType").value,s=data.materialStocks[idx];if(Number.isNaN(idx)||!s)return alert("请选择一个物料");if(qty<=0)return alert("请填写正确数量");if(type==="in"){s.stock=+(n(s.stock)+qty).toFixed(2)}if(type==="arrive"){s.stock=+(n(s.stock)+qty).toFixed(2);s.onway=Math.max(0,+(n(s.onway)-qty).toFixed(2))}if(type==="out"){if(n(s.stock)<qty)return alert("库存不足");s.stock=+(n(s.stock)-qty).toFixed(2)}if(type==="onway"){s.onway=+(n(s.onway)+qty).toFixed(2)}$("matStockQty").value="";save();renderAll();alert("物料库存已更新")}
+function renderMaterialStock(){ $("matStockSelect").innerHTML=data.materialStocks.map((s,i)=>`<option value="${i}">${esc(s.name)} / ${esc(s.spec)}</option>`).join("");$("materialStockList").innerHTML=data.materialStocks.map(s=>`<div class="item"><b>${esc(s.name)}</b> / ${esc(s.spec)}<br>库存：${s.stock}${esc(s.unit)}　在途：${s.onway}${esc(s.unit)}</div>`).join("")||`<div class="empty">暂无物料库存</div>`;$("materialNameList").innerHTML=data.materialNames.map(x=>`<option value="${esc(x)}">`).join("")}
+
+function getPurchaseSummary(){const map={};data.orders.filter(o=>isOpenStatus(o.status)).forEach(o=>(o.materials||[]).forEach(m=>{const k=materialKey(m.name,m.spec);if(!map[k]){const ms=getMatStock(m.name,m.spec);map[k]={name:m.name,spec:m.spec,unit:m.unit,need:0,stock:n(ms.stock),onway:n(ms.onway),price:n(m.price)}}map[k].need+=n(m.totalNeed)}));return Object.values(map).map(x=>({...x,need:+x.need.toFixed(2),buy:Math.max(0,+(x.need-x.stock-x.onway).toFixed(2)),amount:+(Math.max(0,x.need-x.stock-x.onway)*x.price).toFixed(2)})).filter(x=>x.buy>0)}
+function renderWarnings(){const list=getPurchaseSummary();$("purchaseList").innerHTML=list.map(x=>`<div class="item"><b>${esc(x.name)}</b> / ${esc(x.spec)}<br>总需求：${x.need}${esc(x.unit)}　库存：${x.stock}　在途：${x.onway}<br>建议采购：<span class="danger-text">${x.buy}</span>${esc(x.unit)}　预计金额：${x.amount}</div>`).join("")||`<div class="empty">暂无采购建议</div>`}
+function renderHome(){const open=data.orders.filter(o=>isOpenStatus(o.status));$("homeActiveCount").innerText=open.length;$("homeWarnCount").innerText=getPurchaseSummary().length;$("homeOrders").innerHTML=data.orders.slice().reverse().slice(0,5).map(orderCard).join("")||`<div class="empty">暂无生产单</div>`;const todos=[];open.filter(o=>o.status==="待入库").forEach(o=>todos.push(`生产单 ${o.id} 待确认成品入库`));if(getPurchaseSummary().length)todos.push(`有 ${getPurchaseSummary().length} 项物料需要采购`);$("todoList").innerHTML=todos.map(t=>`<div class="item">${esc(t)}</div>`).join("")||`<div class="empty">暂无待处理事项</div>`}
+
+function exportOrdersCSV(){const rows=[["生产单","状态","货号","品名","总件数","单件成本","总成本","单件利润","总利润","物料","规格","总需用","还需采购","金额"]];data.orders.forEach(o=>(o.materials||[]).forEach(m=>rows.push([o.id,o.status,o.code,o.productName,o.totalQty,o.unitCost,o.totalCost,o.profitPer,o.totalProfit,m.name,m.spec,m.totalNeed,m.needOrder,m.cost])));downloadCSV("衣跟单生产单.csv",rows)}
+function exportPurchaseCSV(){const rows=[["物料","规格","单位","总需求","库存","在途","建议采购","预计金额"]];getPurchaseSummary().forEach(x=>rows.push([x.name,x.spec,x.unit,x.need,x.stock,x.onway,x.buy,x.amount]));downloadCSV("衣跟单采购建议.csv",rows)}
+function downloadCSV(name,rows){const csv=rows.map(r=>r.map(v=>`"${String(v??"").replace(/"/g,'""')}"`).join(",")).join("\n");const a=document.createElement("a");a.href=URL.createObjectURL(new Blob(["\ufeff"+csv],{type:"text/csv;charset=utf-8"}));a.download=name;a.click()}
+function backupData(){$("backupBox").value=JSON.stringify(data);$("backupBox").select();alert("备份内容已生成，请复制保存")}
+function restoreData(){if(!confirm("导入备份会覆盖当前数据，确定继续？"))return;try{const obj=JSON.parse($("backupBox").value);if(!obj.products||!obj.boms)throw new Error();data=obj;save();renderAll();alert("导入成功")}catch(e){alert("导入失败，格式不对")}}
+function resetDemo(){if(confirm("确定清空并恢复演示数据？")){localStorage.removeItem(STORAGE_KEY);data=defaultData();save();location.reload()}}
+
+function renderSelects(){const opts=data.products.map(p=>`<option value="${esc(p.code)}">${esc(p.code)} - ${esc(p.name)}</option>`).join("");["countProduct","orderProduct","bomProduct"].forEach(id=>$(id).innerHTML=opts);renderCountForm();renderOrderForm()}
+function renderAll(){recalcOrders();renderSelects();renderHome();renderProducts();renderCountRecords();renderOrders();renderBom();renderMaterialStock();renderWarnings();renderTempSizes()}
+function showPage(id){if(id!=="product"){tempSizes=[]}document.querySelectorAll(".page").forEach(p=>p.classList.remove("active"));$(id).classList.add("active");document.querySelectorAll(".nav button").forEach(b=>b.classList.toggle("active",b.dataset.nav===id));renderAll();window.scrollTo(0,0)}
 renderAll();
 </script>
 </body>

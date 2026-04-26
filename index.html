@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0">
-<title>衣跟单 · 轻量补货版 V1.11</title>
+<title>衣跟单 · 轻量补货版 V1.12</title>
 <style>
 :root{--blue:#2f6df6;--green:#18a058;--orange:#ff7a1a;--red:#e5484d;--bg:#f5f6fa;--card:#fff;--text:#1f2937;--muted:#7b8494;--line:#e9edf5}
 *{box-sizing:border-box}
@@ -146,11 +146,17 @@ hr{border:0;border-top:1px solid var(--line);margin:12px 0}
 .pick-row button{margin:0;height:46px}
 .pick-row .chip-box{margin:0}
 
+
+.swipe-wrap{position:relative;overflow:hidden;border-bottom:1px solid var(--line);background:#fff}
+.swipe-wrap .library-row{border-bottom:0;background:#fff;transition:transform .18s ease;position:relative;z-index:2;padding-left:4px;padding-right:4px}
+.swipe-wrap.swiped .library-row{transform:translateX(-84px)}
+.swipe-delete{position:absolute;right:0;top:0;bottom:0;width:84px;border:0;border-radius:0;background:#e5484d;color:#fff;font-weight:900;margin:0;z-index:1}
+
 </style>
 </head>
 <body>
 <div class="app">
-  <div class="header">衣跟单 · 轻量补货版 V1.11</div>
+  <div class="header">衣跟单 · 轻量补货版 V1.12</div>
 
   <section id="home" class="page active">
     <div class="grid2">
@@ -355,7 +361,7 @@ function normalizeSizes(input){
   const out = [];
   arr.forEach(item=>{
     String(item ?? "")
-      .split(/[\\/、，,\s]+/)
+      .split(/[\\/、，,\s\-]+/)
       .map(x=>x.trim())
       .filter(Boolean)
       .forEach(x=>{
@@ -364,6 +370,7 @@ function normalizeSizes(input){
   });
   return out;
 }
+function formatSizeGroup(input){return normalizeSizes(input).join("-")}
 function esc(v){return String(v??"").replace(/[&<>"']/g,s=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[s]))}
 function today(){return new Date().toISOString().slice(0,10)}
 function defaultData(){
@@ -372,7 +379,7 @@ function defaultData(){
   materialStocks:[],
   finishedStocks:[],countRecords:[],finishedInRecords:[],orders:[],logs:[],
   colorLibrary:["粉色","蓝色","红色","脚蹼","白雪公主发箍","爱心蝴蝶结发箍"],
-  sizeLibrary:["90、100、110、120、130、140","均码","XS、S、M、L、XL、XXL","26、27、28、29、30、31、32、33、34"],
+  sizeLibrary:["90-100-110-120-130-140","均码","XS-S-M-L-XL-XXL","26-27-28-29-30-31-32-33-34"],
   materialNames:["面料","里布","外纱","拉链","花边","吊牌","包装袋","工费"]};
 }
 function loadData(){
@@ -381,7 +388,8 @@ function loadData(){
     d.materialStocks=d.materialStocks||d.stocks||[]; d.finishedStocks=d.finishedStocks||[]; d.countRecords=d.countRecords||[]; d.finishedInRecords=d.finishedInRecords||[];
     d.materialNames=d.materialNames||["面料","里布","外纱","拉链","花边","吊牌","包装袋","工费"];
     d.colorLibrary=d.colorLibrary||["粉色","蓝色","红色","脚蹼","白雪公主发箍","爱心蝴蝶结发箍"];
-    d.sizeLibrary=d.sizeLibrary||["90、100、110、120、130、140","均码","XS、S、M、L、XL、XXL","26、27、28、29、30、31、32、33、34"];
+    d.sizeLibrary=d.sizeLibrary||["90-100-110-120-130-140","均码","XS-S-M-L-XL-XXL","26-27-28-29-30-31-32-33-34"];
+    d.sizeLibrary=[...new Set(d.sizeLibrary.map(g=>formatSizeGroup(g)).filter(Boolean))];
     d.products.forEach(p=>{p.sizes=normalizeSizes(p.sizes||[]);p.colors=p.colors||[];p.salePrice=n(p.salePrice);p.otherCost=n(p.otherCost);p.colors.forEach(c=>{if(c&&!d.colorLibrary.includes(c))d.colorLibrary.push(c)});if(p.sizes.length){const g=p.sizes.join("、");if(!d.sizeLibrary.includes(g))d.sizeLibrary.push(g)}});
     d.boms.forEach(b=>{b.remark=b.remark||b.spec||"";b.spec=b.spec||"";b.unit=b.unit||"";b.category=b.category||""});
     d.orders.forEach(o=>{o.materialStatus=o.materialStatus||{};});
@@ -454,16 +462,56 @@ function openColorLibrary(){
   showPage("colorLib");
   renderColorLibrary();
 }
+
+let swipeStartX=0, swipeStartY=0;
+function swipeStart(e){
+  const t=e.touches&&e.touches[0];
+  if(!t)return;
+  swipeStartX=t.clientX;
+  swipeStartY=t.clientY;
+}
+function swipeEnd(e){
+  const t=e.changedTouches&&e.changedTouches[0];
+  if(!t)return;
+  const dx=t.clientX-swipeStartX;
+  const dy=t.clientY-swipeStartY;
+  const row=e.currentTarget;
+  if(Math.abs(dx)>Math.abs(dy)&&dx<-35){
+    document.querySelectorAll(".swipe-wrap").forEach(x=>{if(x!==row)x.classList.remove("swiped")});
+    row.classList.add("swiped");
+  }else if(dx>25){
+    row.classList.remove("swiped");
+  }
+}
+function closeSwipeRows(){document.querySelectorAll(".swipe-wrap").forEach(x=>x.classList.remove("swiped"))}
+
 function renderColorLibrary(){
   const box=$("colorLibList");if(!box)return;
   const kw=($("colorLibSearch")?.value||"").trim();
   const list=data.colorLibrary.filter(c=>!kw||c.includes(kw));
-  box.innerHTML=list.map(c=>`<div class="library-row" onclick="toggleDraftColor('${esc(c)}')"><span>${esc(c)}</span><span class="radio-dot ${draftColors.includes(c)?'active':''}"></span></div>`).join("")||`<div class="empty">暂无颜色</div>`;
+  box.innerHTML=list.map(c=>{
+    const token=encodeURIComponent(c);
+    return `<div class="swipe-wrap" ontouchstart="swipeStart(event)" ontouchend="swipeEnd(event)">
+      <button class="swipe-delete" onclick="event.stopPropagation();deleteLibraryColor(decodeURIComponent('${token}'))">删除</button>
+      <div class="library-row" onclick="closeSwipeRows();toggleDraftColor(decodeURIComponent('${token}'))">
+        <span>${esc(c)}</span><span class="radio-dot ${draftColors.includes(c)?'active':''}"></span>
+      </div>
+    </div>`;
+  }).join("")||`<div class="empty">暂无颜色</div>`;
 }
 function toggleDraftColor(color){
   if(draftColors.includes(color)) draftColors=draftColors.filter(x=>x!==color);
   else draftColors.push(color);
   renderColorLibrary();
+}
+function deleteLibraryColor(color){
+  if(!confirm("确定删除这个颜色吗？"))return;
+  data.colorLibrary=data.colorLibrary.filter(c=>c!==color);
+  draftColors=draftColors.filter(c=>c!==color);
+  tempColors=tempColors.filter(c=>c!==color);
+  save();
+  renderColorLibrary();
+  renderTempColors();
 }
 function addLibraryColor(){
   const name=prompt("请输入颜色名称");
@@ -489,11 +537,18 @@ function openSizeLibrary(){
 function renderSizeLibrary(){
   const box=$("sizeLibList");if(!box)return;
   const kw=($("sizeLibSearch")?.value||"").trim();
-  const list=data.sizeLibrary.filter(g=>!kw||g.includes(kw));
+  const list=data.sizeLibrary.filter(g=>!kw||g.includes(kw)||formatSizeGroup(g).includes(kw));
   box.innerHTML=list.map(group=>{
+    const display=formatSizeGroup(group);
+    const token=encodeURIComponent(group);
     const sizes=normalizeSizes(group);
     const active=sizes.length&&sizes.every(s=>draftSizes.includes(s));
-    return `<div class="library-row" onclick="toggleDraftSizeGroup('${esc(group)}')"><span>${esc(group)}</span><span class="radio-dot ${active?'active':''}"></span></div>`;
+    return `<div class="swipe-wrap" ontouchstart="swipeStart(event)" ontouchend="swipeEnd(event)">
+      <button class="swipe-delete" onclick="event.stopPropagation();deleteLibrarySizeGroup(decodeURIComponent('${token}'))">删除</button>
+      <div class="library-row" onclick="closeSwipeRows();toggleDraftSizeGroup(decodeURIComponent('${token}'))">
+        <span>${esc(display)}</span><span class="radio-dot ${active?'active':''}"></span>
+      </div>
+    </div>`;
   }).join("")||`<div class="empty">暂无尺码</div>`;
 }
 function toggleDraftSizeGroup(group){
@@ -506,12 +561,23 @@ function toggleDraftSizeGroup(group){
   }
   renderSizeLibrary();
 }
+function deleteLibrarySizeGroup(group){
+  if(!confirm("确定删除这个尺码组吗？"))return;
+  const display=formatSizeGroup(group);
+  data.sizeLibrary=data.sizeLibrary.filter(g=>formatSizeGroup(g)!==display);
+  const sizes=normalizeSizes(group);
+  draftSizes=draftSizes.filter(s=>!sizes.includes(s));
+  tempSizes=tempSizes.filter(s=>!sizes.includes(s));
+  save();
+  renderSizeLibrary();
+  renderTempSizes();
+}
 function addLibrarySizeGroup(){
-  const raw=prompt("请输入尺码组，例如：90、100、110、120");
+  const raw=prompt("请输入尺码组，例如：90-100-110-120");
   if(!raw)return;
   const sizes=normalizeSizes(raw);
   if(!sizes.length)return;
-  const group=sizes.join("、");
+  const group=sizes.join("-");
   if(!data.sizeLibrary.includes(group))data.sizeLibrary.push(group);
   sizes.forEach(s=>{if(!draftSizes.includes(s))draftSizes.push(s)});
   save();
@@ -530,13 +596,13 @@ function addProduct(){
   if(!code||!name||!colors.length||!sizes.length)return alert("请填写货号、品名，并选择颜色和尺码");
   if(data.products.some(p=>p.code===code))return alert("货号已存在");
   colors.forEach(c=>{if(c&&!data.colorLibrary.includes(c))data.colorLibrary.push(c)});
-  const sizeGroup=sizes.join("、"); if(sizeGroup&&!data.sizeLibrary.includes(sizeGroup))data.sizeLibrary.push(sizeGroup);
+  const sizeGroup=sizes.join("-"); if(sizeGroup&&!data.sizeLibrary.includes(sizeGroup))data.sizeLibrary.push(sizeGroup);
   data.products.push({id:uid("P"),code,name,sizes,colors,salePrice:n($("pSalePrice").value),otherCost:0});
   tempSizes=[];tempColors=[];
   $("pCode").value=$("pName").value=$("pSalePrice").value="";
   save();renderAll();alert("产品已保存");
 }
-function renderProducts(){ $("productList").innerHTML=data.products.map(p=>`<div class="item"><div class="item-head"><b>${esc(p.code)}</b><span class="tag gray">${esc(p.name)}</span></div>颜色：${p.colors.map(esc).join("、")}<br>尺码：${p.sizes.map(esc).join("、")}<br>售价：${p.salePrice||0}<br><button class="btn-small btn-red" onclick="deleteProduct('${esc(p.code)}')">删除</button></div>`).join("")||`<div class="empty">暂无产品</div>`}
+function renderProducts(){ $("productList").innerHTML=data.products.map(p=>`<div class="item"><div class="item-head"><b>${esc(p.code)}</b><span class="tag gray">${esc(p.name)}</span></div>颜色：${p.colors.map(esc).join("、")}<br>尺码：${p.sizes.map(esc).join("-")}<br>售价：${p.salePrice||0}<br><button class="btn-small btn-red" onclick="deleteProduct('${esc(p.code)}')">删除</button></div>`).join("")||`<div class="empty">暂无产品</div>`}
 function deleteProduct(code){if(data.orders.some(o=>o.code===code))return alert("已有生产单，不能删除");if(!confirm("确定删除产品和该货号BOM？"))return;data.products=data.products.filter(p=>p.code!==code);data.boms=data.boms.filter(b=>b.code!==code);save();renderAll()}
 
 

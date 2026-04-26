@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0">
-<title>衣跟单 · 轻量补货版 V1.19</title>
+<title>衣跟单 · 轻量补货版 V1.20</title>
 <style>
 :root{--blue:#2f6df6;--green:#18a058;--orange:#ff7a1a;--red:#e5484d;--bg:#f5f6fa;--card:#fff;--text:#1f2937;--muted:#7b8494;--line:#e9edf5}
 *{box-sizing:border-box}
@@ -268,7 +268,7 @@ hr{border:0;border-top:1px solid var(--line);margin:12px 0}
 </head>
 <body>
 <div class="app">
-  <div class="header">衣跟单 · 轻量补货版 V1.19</div>
+  <div class="header">衣跟单 · 轻量补货版 V1.20</div>
 
   <section id="home" class="page active">
     <div class="grid2">
@@ -1103,7 +1103,8 @@ function orderCard(o){const mat=o.materialReady?"物料已齐套":`未下单${o.
   <div class="progress"><div class="bar" style="width:${o.readyRate||0}%"></div></div>
   <div class="order-list-bottom"><span>${mat}</span><span>到货率：${o.readyRate||0}%</span></div>
 </div>`}
-function openOrder(id){
+function openOrder(id,keepScroll=false){
+  const savedScroll=window.scrollY||document.documentElement.scrollTop||0;
   const o=data.orders.find(x=>x.id===id);if(!o)return;
 
   const qtyRows=Object.entries(o.colorQty||{}).map(([color,map])=>{
@@ -1162,11 +1163,25 @@ function openOrder(id){
       </table>
     </div>
   </div>`;
-  showPage("detail");
+  showPage("detail",keepScroll);
+  if(keepScroll){
+    setTimeout(()=>window.scrollTo(0,savedScroll),0);
+  }
 }
 function setOrderStatus(id,status){const o=data.orders.find(x=>x.id===id);if(!o)return;o.status=status;save();renderAll();openOrder(id)}
 function confirmCancelOrder(id){if(confirm("确定取消这张生产单？取消后不能确认入库。"))setOrderStatus(id,"已取消")}
-function setMaterialStatus(orderId,key,status){const o=data.orders.find(x=>x.id===orderId);if(!o)return;o.materialStatus=o.materialStatus||{};o.materialStatus[key]=status;save();renderAll();openOrder(orderId)}
+function setMaterialStatus(orderId,key,status){
+  const y=window.scrollY||document.documentElement.scrollTop||0;
+  const o=data.orders.find(x=>x.id===orderId);
+  if(!o)return;
+  o.materialStatus=o.materialStatus||{};
+  o.materialStatus[key]=status;
+  const idx=data.orders.findIndex(x=>x.id===orderId);
+  if(idx>=0)data.orders[idx]=calcOrder(o);
+  save();
+  openOrder(orderId,true);
+  setTimeout(()=>window.scrollTo(0,y),0);
+}
 function deleteOrder(id){const o=data.orders.find(x=>x.id===id);if(!o)return;if(o.status==="已入库")return alert("已入库的生产单不能直接删除，避免库存错误");if(o.status==="已取消")return alert("已取消的生产单不建议删除，请保留记录");if(!confirm("确定删除这个未入库生产单？"))return;data.orders=data.orders.filter(o=>o.id!==id);save();renderAll();showPage("orders")}
 function confirmFinishedIn(id){const o=data.orders.find(x=>x.id===id);if(!o)return;if(o.status==="已入库")return alert("这张单已经入库过了");if(o.status==="已取消")return alert("已取消的生产单不能入库");Object.entries(o.colorQty||{}).forEach(([color,map])=>{Object.entries(map).forEach(([size,qty])=>{if(n(qty)>0){addFinishedQty(o.code,color,size,n(qty));data.finishedInRecords.push({id:uid("FI"),ts:Date.now(),date:new Date().toLocaleString(),orderId:o.id,code:o.code,color,size,qty:n(qty)})}})});o.status="已入库";o.inDate=today();save();renderAll();alert("成品已自动入库");openOrder(id)}
 
@@ -1334,7 +1349,7 @@ function resetDemo(){if(confirm("确定清空并恢复演示数据？")){localSt
 
 function renderSelects(){["count","order","bom"].forEach(initProductSelector);renderCountForm();renderOrderForm()}
 function renderAll(){recalcOrders();renderSelects();renderHome();renderProducts();renderCountRecords();renderOrders();renderBom();renderMaterialNames();renderWarnings();renderTempSizes();renderTempColors();renderColorLibrary();renderSizeLibrary()}
-function showPage(id){if(!["product","colorLib","sizeLib"].includes(id)){tempSizes=[];tempColors=[]}document.querySelectorAll(".page").forEach(p=>p.classList.remove("active"));$(id).classList.add("active");document.querySelectorAll(".nav button").forEach(b=>b.classList.toggle("active",b.dataset.nav===id));renderAll();window.scrollTo(0,0)}
+function showPage(id,keepScroll=false){if(!["product","colorLib","sizeLib"].includes(id)){tempSizes=[];tempColors=[]}document.querySelectorAll(".page").forEach(p=>p.classList.remove("active"));$(id).classList.add("active");document.querySelectorAll(".nav button").forEach(b=>b.classList.toggle("active",b.dataset.nav===id));renderAll();if(!keepScroll)window.scrollTo(0,0)}
 renderAll();
 </script>
 </body>

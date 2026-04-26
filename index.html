@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0">
-<title>八方来财补货版 V1.23</title>
+<title>八方来财补货版 V1.24</title>
 <style>
 :root{--blue:#2f6df6;--green:#18a058;--orange:#ff7a1a;--red:#e5484d;--bg:#f5f6fa;--card:#fff;--text:#1f2937;--muted:#7b8494;--line:#e9edf5}
 *{box-sizing:border-box}
@@ -378,24 +378,24 @@ hr{border:0;border-top:1px solid var(--line);margin:12px 0}
 </head>
 <body>
 <div class="app">
-  <div class="header">八方来财补货版 V1.23</div>
+  <div class="header">八方来财补货版 V1.24</div>
 
   <section id="home" class="page active">
     <div class="grid2">
-      <div class="stat blue" onclick="showPage('orders')"><div>待处理生产单</div><div id="homeActiveCount" class="num">0</div><div>点击查看</div></div>
+      <div class="stat blue" onclick="showOrdersListOnly()"><div>待处理生产单</div><div id="homeActiveCount" class="num">0</div><div>点击查看</div></div>
       <div class="stat orange" onclick="showPage('warning')"><div>待处理物料</div><div id="homeWarnCount" class="num">0</div><div>查看物料状态</div></div>
     </div>
     <div class="card">
       <div class="title">快捷操作</div>
       <div class="quick">
         <button onclick="showPage('count')"><div class="qicon">📋</div>盘点</button>
-        <button onclick="showPage('orders')"><div class="qicon">＋</div>下单</button>
+        <button onclick="showOrdersFull()"><div class="qicon">＋</div>下单</button>
         <button onclick="showPage('material')"><div class="qicon">📦</div>物料</button>
         <button onclick="showPage('product')"><div class="qicon">👕</div>产品</button>
       </div>
     </div>
     <div class="card"><div class="title">待处理提醒</div><div id="todoList"></div></div>
-    <div class="card"><div class="title">最近生产单 <button class="btn-small btn-gray" onclick="showPage('orders')">全部</button></div><div id="homeOrders"></div></div>
+    <div class="card"><div class="title">最近生产单 <button class="btn-small btn-gray" onclick="showOrdersListOnly()">全部</button></div><div id="homeOrders"></div></div>
   </section>
 
   <section id="product" class="page">
@@ -495,7 +495,7 @@ hr{border:0;border-top:1px solid var(--line);margin:12px 0}
   </section>
 
   <section id="orders" class="page">
-    <div class="card">
+    <div class="card" id="orderCreateCard">
       <div class="title">新建生产指令单</div>
 
       <div class="order-top-grid">
@@ -582,7 +582,7 @@ hr{border:0;border-top:1px solid var(--line);margin:12px 0}
 <div class="nav"><div class="nav-inner">
   <button data-nav="home" class="active" onclick="showPage('home')"><b>▦</b>首页</button>
   <button data-nav="count" onclick="showPage('count')"><b>📋</b>盘点</button>
-  <button data-nav="orders" onclick="showPage('orders')"><b>＋</b>下单</button>
+  <button data-nav="orders" onclick="showOrdersFull()"><b>＋</b>下单</button>
   <button data-nav="material" onclick="showPage('material')"><b>📦</b>物料</button>
   <button data-nav="report" onclick="showPage('report')"><b>◔</b>报表</button>
 </div></div>
@@ -1464,8 +1464,36 @@ function resetDemo(){if(confirm("确定清空并恢复演示数据？")){localSt
 
 function renderSelects(){["count","order","bom"].forEach(initProductSelector);renderCountForm();renderOrderForm()}
 function renderAll(){recalcOrders();renderSelects();renderHome();renderProducts();renderCountRecords();renderOrders();renderBom();renderMaterialNames();renderWarnings();renderTempSizes();renderTempColors();renderColorLibrary();renderSizeLibrary()}
-function showPage(id,keepScroll=false){if(!["product","colorLib","sizeLib"].includes(id)){tempSizes=[];tempColors=[]}document.querySelectorAll(".page").forEach(p=>p.classList.remove("active"));$(id).classList.add("active");document.querySelectorAll(".nav button").forEach(b=>b.classList.toggle("active",b.dataset.nav===id));renderAll();if(!keepScroll)window.scrollTo(0,0)}
+let orderListOnlyMode=false;
+
+function applyOrderPageMode(){
+  const card=$("orderCreateCard");
+  if(card) card.style.display=orderListOnlyMode ? "none" : "block";
+  if($("orderFilter") && orderListOnlyMode) $("orderFilter").value="open";
+}
+
+function showOrdersListOnly(){
+  orderListOnlyMode=true;
+  showPage("orders");
+}
+
+function showOrdersFull(){
+  orderListOnlyMode=false;
+  showPage("orders");
+}
+
+function showPage(id,keepScroll=false){
+  if(id!=="orders") orderListOnlyMode=false;
+  if(!["product","colorLib","sizeLib"].includes(id)){tempSizes=[];tempColors=[]}
+  document.querySelectorAll(".page").forEach(p=>p.classList.remove("active"));
+  $(id).classList.add("active");
+  document.querySelectorAll(".nav button").forEach(b=>b.classList.toggle("active",b.dataset.nav===id));
+  renderAll();
+  applyOrderPageMode();
+  if(!keepScroll)window.scrollTo(0,0);
+}
 renderAll();
+applyOrderPageMode();
 </script>
 </body>
 </html>

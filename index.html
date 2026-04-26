@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0">
-<title>衣跟单 · 轻量补货版 V1.13</title>
+<title>衣跟单 · 轻量补货版 V1.14</title>
 <style>
 :root{--blue:#2f6df6;--green:#18a058;--orange:#ff7a1a;--red:#e5484d;--bg:#f5f6fa;--card:#fff;--text:#1f2937;--muted:#7b8494;--line:#e9edf5}
 *{box-sizing:border-box}
@@ -172,7 +172,7 @@ hr{border:0;border-top:1px solid var(--line);margin:12px 0}
 </head>
 <body>
 <div class="app">
-  <div class="header">衣跟单 · 轻量补货版 V1.13</div>
+  <div class="header">衣跟单 · 轻量补货版 V1.14</div>
 
   <section id="home" class="page active">
     <div class="grid2">
@@ -637,7 +637,10 @@ function initProductSelector(prefix){
   if(!getProduct(code) && data.products[0]) code=data.products[0].code;
   hidden.value=code||"";
   const p=getProduct(code);
-  if(p && (!search.value || !productSearchMatches(search.value).some(x=>x.code===code))){
+  if(prefix==="count"){
+    search.value="";
+    search.placeholder=p?`已选：${productLabel(p)}，输入货号搜索`:"输入货号搜索";
+  }else if(p && (!search.value || !productSearchMatches(search.value).some(x=>x.code===code))){
     search.value=productLabel(p);
   }
   if(selected){
@@ -657,7 +660,14 @@ function selectProduct(prefix,code){
   const p=getProduct(code);
   if(!hidden||!p)return;
   hidden.value=code;
-  if(search) search.value=productLabel(p);
+  if(search){
+    if(prefix==="count"){
+      search.value="";
+      search.placeholder=`已选：${productLabel(p)}，输入货号搜索`;
+    }else{
+      search.value=productLabel(p);
+    }
+  }
   if(box) box.style.display="none";
   const colorInput=$(prefix+"Color");
   if(colorInput) colorInput.value=(p.colors&&p.colors.length)?p.colors[0]:"";
@@ -668,7 +678,11 @@ function selectProduct(prefix,code){
 }
 function clearProductSearch(prefix){
   const search=$(prefix+"ProductSearch"), box=$(prefix+"ProductResults");
-  if(search){search.value="";search.focus();}
+  if(search){
+    search.value="";
+    if(prefix==="count") search.placeholder="输入货号搜索";
+    search.focus();
+  }
   if(box){box.style.display="none";box.innerHTML="";}
 }
 function renderColorOptions(prefix){

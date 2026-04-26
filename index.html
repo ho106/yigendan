@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0">
-<title>八方来财补货版 V1.24</title>
+<title>八方来财补货版 V1.25</title>
 <style>
 :root{--blue:#2f6df6;--green:#18a058;--orange:#ff7a1a;--red:#e5484d;--bg:#f5f6fa;--card:#fff;--text:#1f2937;--muted:#7b8494;--line:#e9edf5}
 *{box-sizing:border-box}
@@ -374,11 +374,25 @@ hr{border:0;border-top:1px solid var(--line);margin:12px 0}
   .order-color-box .color-pill{font-size:14px!important;padding:7px 10px!important}
 }
 
+
+/* V1.25：指令单批量导入 */
+.import-actions{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:8px 0}
+.import-actions button{width:100%;margin:0}
+.import-check{display:flex!important;align-items:center;gap:8px;font-size:14px;font-weight:700;margin:8px 0 12px!important}
+.import-check input{width:auto!important;margin:0!important}
+.import-preview-item{border:1px solid var(--line);border-radius:14px;background:#fafbff;padding:12px;margin:10px 0}
+.import-preview-head{display:flex;justify-content:space-between;gap:8px;align-items:flex-start}
+.import-preview-code{font-size:18px;font-weight:900}
+.import-preview-grid{display:grid;grid-template-columns:1fr 1fr;gap:6px 10px;margin-top:8px;font-size:13px;line-height:1.5}
+.import-warn{color:#d97706;font-size:13px;line-height:1.5;margin-top:8px}
+.import-ok{color:#159957;font-weight:900}
+.import-bad{color:#e5484d;font-weight:900}
+
 </style>
 </head>
 <body>
 <div class="app">
-  <div class="header">八方来财补货版 V1.24</div>
+  <div class="header">八方来财补货版 V1.25</div>
 
   <section id="home" class="page active">
     <div class="grid2">
@@ -567,6 +581,19 @@ hr{border:0;border-top:1px solid var(--line);margin:12px 0}
 
   <section id="report" class="page">
     <div class="card">
+      <div class="title">指令单批量导入</div>
+      <label>选择旧生产指令单 Excel</label>
+      <input id="orderImportFiles" type="file" accept=".xlsx,.xls" multiple>
+      <div class="import-actions">
+        <button class="btn-gray" onclick="previewOrderImport()">识别预览</button>
+        <button class="btn-green" onclick="confirmOrderImport()">确认导入</button>
+      </div>
+      <label class="import-check"><input type="checkbox" id="importCreateOrders"> 同时生成历史生产单（不自动增加库存）</label>
+      <div class="sub">建议先导入 Excel 原文件，不建议导入截图。导入前会先预览，确认后才写入产品资料和 BOM。</div>
+      <div id="orderImportPreview"></div>
+    </div>
+
+    <div class="card">
       <div class="title">报表 / 备份</div>
       <button onclick="exportOrdersCSV()">导出生产单明细 CSV</button>
       <button class="btn-green" onclick="exportPurchaseCSV()">导出待处理物料 CSV</button>
@@ -587,6 +614,7 @@ hr{border:0;border-top:1px solid var(--line);margin:12px 0}
   <button data-nav="report" onclick="showPage('report')"><b>◔</b>报表</button>
 </div></div>
 
+<script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 <script>
 const STORAGE_KEY="yigendan_v4_stable";
 function $(id){return document.getElementById(id)}
@@ -1454,6 +1482,300 @@ function renderWarnings(){
   $("purchaseList").innerHTML=list.map(x=>`<div class="item"><div class="item-head"><b>${esc(x.name)}</b><span class="tag ${matStatusClass(x.status)}">${esc(x.status)}</span></div>${esc(x.code)} ${esc(x.productName||"")} · ${esc(x.remark||"")}<br>需求：${x.need}　单价：${x.price}　金额：${x.amount}<br>供应商：${esc(x.supplier||"")}</div>`).join("")||`<div class="empty">暂无待处理物料</div>`;
 }
 function renderHome(){const open=data.orders.filter(o=>isOpenStatus(o.status));$("homeActiveCount").innerText=open.length;$("homeWarnCount").innerText=getPurchaseSummary().length;$("homeOrders").innerHTML=data.orders.slice().reverse().slice(0,5).map(orderCard).join("")||`<div class="empty">暂无生产单</div>`;const todos=[];open.filter(o=>o.status==="待入库").forEach(o=>todos.push(`生产单 ${o.id} 待确认成品入库`));const pending=getPurchaseSummary().length;if(pending)todos.push(`有 ${pending} 项物料未到货/未下单`);$("todoList").innerHTML=todos.map(t=>`<div class="item">${esc(t)}</div>`).join("")||`<div class="empty">暂无待处理事项</div>`}
+
+
+let pendingOrderImports=[];
+
+function importText(v){
+  if(v===undefined||v===null)return "";
+  if(v instanceof Date)return v.toISOString().slice(0,10);
+  return String(v).trim();
+}
+function importNum(v){
+  const s=importText(v).replace(/[,，]/g,"").replace(/[^\d.\-]/g,"");
+  const x=Number(s);
+  return Number.isFinite(x)?x:0;
+}
+function extractCode(text){
+  const s=importText(text);
+  const m=s.match(/(?:货号|款号)?\s*[:：]?\s*(\d{4,8})/);
+  return m?m[1]:"";
+}
+function normalizeImportDate(v){
+  if(v instanceof Date)return v.toISOString().slice(0,10);
+  if(typeof v==="number" && window.XLSX && XLSX.SSF){
+    try{return XLSX.SSF.format("yyyy-mm-dd",v)}catch(e){}
+  }
+  const s=importText(v);
+  let m=s.match(/(\d{4})[.\-\/年](\d{1,2})[.\-\/月](\d{1,2})/);
+  if(m)return `${m[1]}-${String(m[2]).padStart(2,"0")}-${String(m[3]).padStart(2,"0")}`;
+  m=s.match(/(\d{1,2})[.\-\/月](\d{1,2})/);
+  if(m)return `${new Date().getFullYear()}-${String(m[1]).padStart(2,"0")}-${String(m[2]).padStart(2,"0")}`;
+  return "";
+}
+function isSizeText(s){
+  s=importText(s);
+  return /^(均码|XS|S|M|L|XL|XXL|XXXL|\d{2,3})$/i.test(s);
+}
+function compactRow(row){return (row||[]).map(importText)}
+function findImportCode(aoa,fileName){
+  for(let r=0;r<aoa.length;r++){
+    const row=compactRow(aoa[r]);
+    for(let c=0;c<row.length;c++){
+      if(row[c].includes("货号")||row[c].includes("款号")){
+        for(let k=0;k<=5;k++){
+          const code=extractCode(row[c+k]||"");
+          if(code)return code;
+        }
+      }
+    }
+  }
+  return extractCode(fileName)||"";
+}
+function findImportDateByLabel(aoa,label){
+  for(let r=0;r<aoa.length;r++){
+    const row=compactRow(aoa[r]);
+    for(let c=0;c<row.length;c++){
+      if(row[c].includes(label)){
+        for(let k=0;k<=4;k++){
+          const d=normalizeImportDate((aoa[r]||[])[c+k]);
+          if(d)return d;
+        }
+      }
+    }
+  }
+  return "";
+}
+function findSizeHeader(aoa){
+  const candidates=[];
+  for(let r=0;r<aoa.length;r++){
+    const row=compactRow(aoa[r]);
+    for(let c=0;c<row.length;c++){
+      if(row[c].includes("尺码")||row[c].includes("码数")){
+        const cols=[], sizes=[];
+        for(let k=c+1;k<Math.min(row.length,c+16);k++){
+          const t=row[k];
+          if(t.includes("小计")||t.includes("合计"))break;
+          if(isSizeText(t)){cols.push(k);sizes.push(t)}
+        }
+        if(sizes.length>=2)candidates.push({r,c,cols,sizes});
+      }
+    }
+  }
+  candidates.sort((a,b)=>b.sizes.length-a.sizes.length);
+  return candidates[0]||null;
+}
+function parseColorQty(aoa,header){
+  if(!header)return {colors:[],colorQty:{}};
+  const colorQty={}, colors=[];
+  const {r,c,cols,sizes}=header;
+  for(let rr=r+1;rr<Math.min(aoa.length,r+12);rr++){
+    const row=compactRow(aoa[rr]);
+    if(row.some(x=>x==="小计"||x==="合计"))break;
+    const qtys={};
+    let total=0;
+    cols.forEach((col,i)=>{
+      const q=importNum((aoa[rr]||[])[col]);
+      qtys[sizes[i]]=q;
+      total+=q;
+    });
+    if(total>0){
+      let color="";
+      for(let cc=Math.max(0,c-2);cc<cols[0];cc++){
+        const t=row[cc];
+        if(t && !isSizeText(t) && !["计划数","实际数","小计","合计","尺码","码数"].includes(t)){
+          color=t;break;
+        }
+      }
+      if(!color)color=`颜色${colors.length+1}`;
+      colors.push(color);
+      colorQty[color]=qtys;
+    }
+  }
+  return {colors:[...new Set(colors)],colorQty};
+}
+function findBomHeader(aoa){
+  for(let r=0;r<aoa.length;r++){
+    const row=compactRow(aoa[r]);
+    const nameIdx=row.findIndex(x=>x.includes("品名")||x.includes("物料"));
+    const usageIdx=row.findIndex(x=>x.includes("单耗"));
+    const priceIdx=row.findIndex(x=>x.includes("单价"));
+    if(nameIdx>=0 && usageIdx>=0 && priceIdx>=0){
+      return {
+        r,
+        nameIdx,
+        specIdx:row.findIndex(x=>x.includes("规格")),
+        usageIdx,
+        priceIdx,
+        supplierIdx:row.findIndex(x=>x.includes("供货")||x.includes("供应")),
+        remarkIdx:row.findIndex(x=>x.includes("备注")||x.includes("说明")||x.includes("进度"))
+      };
+    }
+  }
+  return null;
+}
+function parseBoms(aoa,code){
+  const h=findBomHeader(aoa);
+  if(!h)return [];
+  const boms=[];
+  for(let r=h.r+1;r<Math.min(aoa.length,h.r+40);r++){
+    const row=compactRow(aoa[r]);
+    if(row.every(x=>!x))continue;
+    let name=row[h.nameIdx]||"";
+    if(!name && h.nameIdx>0)name=row[h.nameIdx-1]||"";
+    if(!name)continue;
+    if(["合计","小计","品名","物料","面料","辅料","工费"].includes(name))continue;
+    const usage=importNum(row[h.usageIdx]);
+    const price=importNum(row[h.priceIdx]);
+    if(usage<=0||price<=0)continue;
+    const remark=h.specIdx>=0?row[h.specIdx]:"";
+    const supplier=h.supplierIdx>=0?row[h.supplierIdx]:"";
+    boms.push({
+      id:uid("B"),
+      code,
+      category:"",
+      name,
+      spec:"",
+      unit:"",
+      usage,
+      price,
+      supplier,
+      remark:remark||""
+    });
+  }
+  return boms;
+}
+function parseOldOrderSheet(aoa,fileName){
+  const code=findImportCode(aoa,fileName);
+  const header=findSizeHeader(aoa);
+  const sizes=header?header.sizes:[];
+  const qtyInfo=parseColorQty(aoa,header);
+  const boms=parseBoms(aoa,code);
+  const orderDate=findImportDateByLabel(aoa,"下单日期")||today();
+  const dueDate=findImportDateByLabel(aoa,"交货日期");
+  const warnings=[];
+  if(!code)warnings.push("未识别到货号");
+  if(!sizes.length)warnings.push("未识别到尺码");
+  if(!qtyInfo.colors.length)warnings.push("未识别到颜色数量");
+  if(!boms.length)warnings.push("未识别到BOM物料");
+  const existing=getProduct(code);
+  const productName=existing?existing.name:"旧指令单";
+  const colors=qtyInfo.colors.length?qtyInfo.colors:(existing?existing.colors:["默认"]);
+  const colorQty=qtyInfo.colorQty;
+  const totalQty=Object.values(colorQty).reduce((s,map)=>s+Object.values(map).reduce((a,b)=>a+n(b),0),0);
+  return {fileName,code,productName,orderDate,dueDate,sizes,colors,colorQty,boms,totalQty,warnings};
+}
+function readImportFile(file){
+  return new Promise((resolve,reject)=>{
+    const reader=new FileReader();
+    reader.onload=e=>{
+      try{
+        const wb=XLSX.read(e.target.result,{type:"array",cellDates:true});
+        const sheetName=wb.SheetNames[0];
+        const ws=wb.Sheets[sheetName];
+        const aoa=XLSX.utils.sheet_to_json(ws,{header:1,defval:"",raw:true});
+        resolve(parseOldOrderSheet(aoa,file.name));
+      }catch(err){reject(err)}
+    };
+    reader.onerror=reject;
+    reader.readAsArrayBuffer(file);
+  });
+}
+async function previewOrderImport(){
+  const box=$("orderImportPreview");
+  const input=$("orderImportFiles");
+  if(!window.XLSX)return alert("Excel解析库没有加载成功，请检查网络后刷新页面");
+  if(!input.files||!input.files.length)return alert("请先选择 Excel 文件");
+  box.innerHTML=`<div class="empty">正在识别，请稍等...</div>`;
+  pendingOrderImports=[];
+  for(const file of input.files){
+    try{
+      const parsed=await readImportFile(file);
+      pendingOrderImports.push(parsed);
+    }catch(e){
+      pendingOrderImports.push({fileName:file.name,code:"",sizes:[],colors:[],boms:[],warnings:["读取失败："+e.message]});
+    }
+  }
+  renderOrderImportPreview();
+}
+function renderOrderImportPreview(){
+  const box=$("orderImportPreview");
+  if(!pendingOrderImports.length){box.innerHTML=`<div class="empty">暂无预览</div>`;return}
+  box.innerHTML=pendingOrderImports.map(x=>{
+    const ok=x.code && x.boms && x.boms.length;
+    return `<div class="import-preview-item">
+      <div class="import-preview-head">
+        <div><div class="import-preview-code">${esc(x.code||"未识别货号")}</div><div class="sub">${esc(x.fileName||"")}</div></div>
+        <span class="${ok?'import-ok':'import-bad'}">${ok?'可导入':'需检查'}</span>
+      </div>
+      <div class="import-preview-grid">
+        <div>下单日期：${esc(x.orderDate||"-")}</div>
+        <div>交货日期：${esc(x.dueDate||"-")}</div>
+        <div>颜色：${esc((x.colors||[]).join("、")||"-")}</div>
+        <div>尺码：${esc((x.sizes||[]).join("-")||"-")}</div>
+        <div>BOM：${(x.boms||[]).length} 项</div>
+        <div>数量：${x.totalQty||0} 件</div>
+      </div>
+      ${x.warnings&&x.warnings.length?`<div class="import-warn">提示：${esc(x.warnings.join("；"))}</div>`:""}
+    </div>`;
+  }).join("");
+}
+function mergeUnique(arr,items){
+  items.forEach(x=>{if(x&&!arr.includes(x))arr.push(x)});
+}
+function upsertImportedBom(bom){
+  const idx=data.boms.findIndex(b=>b.code===bom.code && b.name===bom.name && (b.remark||"")===(bom.remark||""));
+  if(idx>=0){
+    data.boms[idx]={...data.boms[idx],usage:bom.usage,price:bom.price,supplier:bom.supplier,remark:bom.remark};
+  }else{
+    data.boms.push(bom);
+  }
+}
+function makeImportOrderId(code,date){
+  const d=(date||today()).replaceAll("-","");
+  const base=d+"-"+code;
+  const used=data.orders.map(o=>String(o.id||""));
+  if(!used.includes(base))return base;
+  let i=2;
+  while(used.includes(base+"-"+i))i++;
+  return base+"-"+i;
+}
+function confirmOrderImport(){
+  if(!pendingOrderImports.length)return alert("请先识别预览");
+  const createOrders=$("importCreateOrders")&&$("importCreateOrders").checked;
+  let productCount=0,bomCount=0,orderCount=0;
+  pendingOrderImports.forEach(x=>{
+    if(!x.code)return;
+    let p=getProduct(x.code);
+    if(!p){
+      p={id:uid("P"),code:x.code,name:x.productName||"旧指令单",sizes:normalizeSizes(x.sizes),colors:x.colors||[],salePrice:0,otherCost:0};
+      data.products.push(p);
+      productCount++;
+    }else{
+      mergeUnique(p.sizes,normalizeSizes(x.sizes));
+      mergeUnique(p.colors,x.colors||[]);
+      p.sizes=normalizeSizes(p.sizes);
+    }
+    mergeUnique(data.colorLibrary,x.colors||[]);
+    const sizeGroup=normalizeSizes(x.sizes).join("-");
+    if(sizeGroup&&!data.sizeLibrary.includes(sizeGroup))data.sizeLibrary.push(sizeGroup);
+    (x.boms||[]).forEach(b=>{upsertImportedBom(b);bomCount++;if(b.name&&!data.materialNames.includes(b.name))data.materialNames.push(b.name)});
+    if(createOrders && x.totalQty>0){
+      const id=makeImportOrderId(x.code,x.orderDate);
+      if(!data.orders.some(o=>o.id===id)){
+        const order={id,code:x.code,productName:p.name,colorQty:x.colorQty,status:"已入库",created:x.orderDate||today(),dueDate:x.dueDate||"",bomSnapshot:snapshotBoms(x.code),materialStatus:{},note:"旧指令单批量导入"};
+        data.orders.push(calcOrder(order));
+        orderCount++;
+      }
+    }
+  });
+  save();
+  renderAll();
+  alert(`导入完成：新增产品 ${productCount} 个，处理BOM ${bomCount} 项${createOrders?`，生成历史生产单 ${orderCount} 张`:""}`);
+  pendingOrderImports=[];
+  if($("orderImportFiles"))$("orderImportFiles").value="";
+  renderOrderImportPreview();
+}
 
 function exportOrdersCSV(){const rows=[["生产单","状态","货号","品名","总件数","单件成本","总成本","单件利润","总利润","物料","备注","单耗","单价","总需用","供应商","采购状态","金额"]];data.orders.forEach(o=>(o.materials||[]).forEach(m=>rows.push([o.id,o.status,o.code,o.productName,o.totalQty,o.unitCost,o.totalCost,o.profitPer,o.totalProfit,m.name,m.remark||m.spec||"",m.usage,m.price,m.totalNeed,m.supplier||"",m.status,m.cost])));downloadCSV("八方来财生产单.csv",rows)}
 function exportPurchaseCSV(){const rows=[["生产单","货号","品名","物料","备注","需求","单价","供应商","状态","金额"]];getPurchaseSummary().forEach(x=>rows.push([x.orderId,x.code,x.productName,x.name,x.remark,x.need,x.price,x.supplier,x.status,x.amount]));downloadCSV("八方来财待处理物料.csv",rows)}

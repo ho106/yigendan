@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0">
-<title>衣跟单 · 轻量补货版 V1.14</title>
+<title>衣跟单 · 轻量补货版 V1.15</title>
 <style>
 :root{--blue:#2f6df6;--green:#18a058;--orange:#ff7a1a;--red:#e5484d;--bg:#f5f6fa;--card:#fff;--text:#1f2937;--muted:#7b8494;--line:#e9edf5}
 *{box-sizing:border-box}
@@ -172,7 +172,7 @@ hr{border:0;border-top:1px solid var(--line);margin:12px 0}
 </head>
 <body>
 <div class="app">
-  <div class="header">衣跟单 · 轻量补货版 V1.14</div>
+  <div class="header">衣跟单 · 轻量补货版 V1.15</div>
 
   <section id="home" class="page active">
     <div class="grid2">
@@ -460,6 +460,7 @@ let tempSizes=[];
 let tempColors=[];
 let draftColors=[];
 let draftSizes=[];
+let draftSizeGroup="";
 
 function removeTempSize(i){tempSizes.splice(i,1);renderTempSizes()}
 function removeTempColor(i){tempColors.splice(i,1);renderTempColors()}
@@ -547,6 +548,7 @@ function confirmColorLibrary(){
 
 function openSizeLibrary(){
   draftSizes=tempSizes.slice();
+  draftSizeGroup=tempSizes.length?tempSizes.join("-"):"";
   showPage("sizeLib");
   renderSizeLibrary();
 }
@@ -554,11 +556,11 @@ function renderSizeLibrary(){
   const box=$("sizeLibList");if(!box)return;
   const kw=($("sizeLibSearch")?.value||"").trim();
   const list=data.sizeLibrary.filter(g=>!kw||g.includes(kw)||formatSizeGroup(g).includes(kw));
+  const selectedGroup=formatSizeGroup(draftSizeGroup);
   box.innerHTML=list.map(group=>{
     const display=formatSizeGroup(group);
     const token=encodeURIComponent(group);
-    const sizes=normalizeSizes(group);
-    const active=sizes.length&&sizes.every(s=>draftSizes.includes(s));
+    const active=!!selectedGroup && display===selectedGroup;
     return `<div class="swipe-wrap" ontouchstart="swipeStart(event)" ontouchend="swipeEnd(event)">
       <button class="swipe-delete" onclick="event.stopPropagation();deleteLibrarySizeGroup(decodeURIComponent('${token}'))">删除</button>
       <div class="library-row" onclick="closeSwipeRows();toggleDraftSizeGroup(decodeURIComponent('${token}'))">
@@ -568,22 +570,20 @@ function renderSizeLibrary(){
   }).join("")||`<div class="empty">暂无尺码</div>`;
 }
 function toggleDraftSizeGroup(group){
-  const sizes=normalizeSizes(group);
-  const active=sizes.length&&sizes.every(s=>draftSizes.includes(s));
-  if(active){
-    draftSizes=draftSizes.filter(s=>!sizes.includes(s));
-  }else{
-    sizes.forEach(s=>{if(!draftSizes.includes(s))draftSizes.push(s)});
-  }
+  const display=formatSizeGroup(group);
+  draftSizeGroup=display;
+  draftSizes=normalizeSizes(display);
   renderSizeLibrary();
 }
 function deleteLibrarySizeGroup(group){
   if(!confirm("确定删除这个尺码组吗？"))return;
   const display=formatSizeGroup(group);
   data.sizeLibrary=data.sizeLibrary.filter(g=>formatSizeGroup(g)!==display);
-  const sizes=normalizeSizes(group);
-  draftSizes=draftSizes.filter(s=>!sizes.includes(s));
-  tempSizes=tempSizes.filter(s=>!sizes.includes(s));
+  if(formatSizeGroup(draftSizeGroup)===display){
+    draftSizeGroup="";
+    draftSizes=[];
+    tempSizes=[];
+  }
   save();
   renderSizeLibrary();
   renderTempSizes();
@@ -595,12 +595,13 @@ function addLibrarySizeGroup(){
   if(!sizes.length)return;
   const group=sizes.join("-");
   if(!data.sizeLibrary.includes(group))data.sizeLibrary.push(group);
-  sizes.forEach(s=>{if(!draftSizes.includes(s))draftSizes.push(s)});
+  draftSizeGroup=group;
+  draftSizes=sizes;
   save();
   renderSizeLibrary();
 }
 function confirmSizeLibrary(){
-  tempSizes=normalizeSizes(draftSizes);
+  tempSizes=normalizeSizes(draftSizeGroup);
   renderTempSizes();
   showPage("product");
 }

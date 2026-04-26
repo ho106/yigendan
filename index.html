@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0">
-<title>衣跟单 · 轻量补货版 V1.8</title>
+<title>衣跟单 · 轻量补货版 V1.9</title>
 <style>
 :root{--blue:#2f6df6;--green:#18a058;--orange:#ff7a1a;--red:#e5484d;--bg:#f5f6fa;--card:#fff;--text:#1f2937;--muted:#7b8494;--line:#e9edf5}
 *{box-sizing:border-box}
@@ -99,11 +99,36 @@ hr{border:0;border-top:1px solid var(--line);margin:12px 0}
   .bom-compact-row input{font-size:13px;padding:8px 7px}
 }
 
+
+.bom-editor-tools{margin:10px 0 0}
+.bom-table-wrap{width:100%;overflow-x:auto;-webkit-overflow-scrolling:touch;border:1px solid #dbe1ea;border-radius:14px;background:#fff;margin-top:12px}
+.bom-edit-table{border-collapse:separate;border-spacing:0;width:max-content;min-width:100%;font-size:13px}
+.bom-edit-table th{background:#f7faff;color:#111827;font-weight:900;padding:8px 6px;border-bottom:1px solid #dbe1ea;white-space:nowrap;text-align:left}
+.bom-edit-table td{padding:6px;border-bottom:1px solid var(--line);vertical-align:middle}
+.bom-edit-table tr:last-child td{border-bottom:0}
+.bom-edit-table input{height:38px;margin:0;padding:8px 8px;border-radius:10px;font-size:13px}
+.bom-name-cell input{width:118px}
+.bom-usage-cell input,.bom-price-cell input{width:70px;text-align:center}
+.bom-supplier-cell input{width:92px}
+.bom-remark-cell input{width:100px}
+.bom-add-row td{padding:7px 6px;background:#fbfdff}
+.bom-add-row button{width:100%;background:#eef4ff;color:var(--blue);border:1px solid #d5e4ff;margin:0}
+.bom-fixed-row input.bom-name{font-weight:900;background:#fbfcff}
+.bom-tip{margin-top:10px;color:#8b95a5;font-size:13px;line-height:1.5}
+@media(max-width:430px){
+  .bom-name-cell input{width:110px}
+  .bom-usage-cell input,.bom-price-cell input{width:64px}
+  .bom-supplier-cell input{width:86px}
+  .bom-remark-cell input{width:94px}
+  .bom-edit-table th{font-size:12px;padding:7px 5px}
+  .bom-edit-table td{padding:5px}
+}
+
 </style>
 </head>
 <body>
 <div class="app">
-  <div class="header">衣跟单 · 轻量补货版 V1.8</div>
+  <div class="header">衣跟单 · 轻量补货版 V1.9</div>
 
   <section id="home" class="page active">
     <div class="grid2">
@@ -214,27 +239,20 @@ hr{border:0;border-top:1px solid var(--line);margin:12px 0}
 
   <section id="material" class="page">
     <div class="card">
-      <div class="title">BOM / 成本项目</div>
+      <div class="title">BOM / 成本项</div>
+
       <label>所属货号</label>
       <div class="search-select">
-        <input id="bomProductSearch" placeholder="输入货号，例如 26" oninput="renderProductSearch('bom')" onfocus="renderProductSearch('bom')">
+        <input id="bomProductSearch" placeholder="输入货号搜索" oninput="renderProductSearch('bom')" onfocus="renderProductSearch('bom')">
         <input type="hidden" id="bomProduct">
         <div id="bomProductResults" class="suggest-list" style="display:none"></div>
       </div>
-      <div id="bomProductSelected"></div>
 
-      <div class="bom-compact-row">
-        <div><label>物料名称</label><input id="bomName" list="materialNameList" placeholder="面料/拉链/工费"><datalist id="materialNameList"></datalist></div>
-        <div><label>单耗</label><input id="bomUsage" type="number" placeholder="1.2"></div>
-        <div><label>单价</label><input id="bomPrice" type="number" placeholder="15"></div>
-        <div><label>供应商</label><input id="bomSupplier" placeholder="供应商"></div>
-        <div><label>备注</label><input id="bomRemark" placeholder="颜色/说明"></div>
-      </div>
+      <div id="bomList"></div>
 
-      <button class="btn-orange" onclick="addBom()" style="width:100%;margin-top:14px">保存 BOM 项目</button>
-      <div class="sub">BOM只记录每个货号的用料和成本。物料采购状态在生产指令单里直接点“已下单 / 已到货”。</div>
+      <button class="btn-orange" onclick="saveBomEditor()" style="width:100%;margin-top:14px">保存 BOM</button>
+      <div class="bom-tip">直接在表格中填写。空白行会自动忽略；只要填写了物料名称，就必须填写单耗和单价。</div>
     </div>
-    <div class="card"><div class="title">当前 BOM 列表</div><div id="bomList"></div></div>
   </section>
 
   <section id="warning" class="page">
@@ -407,6 +425,7 @@ function selectProduct(prefix,code){
   initProductSelector(prefix);
   if(prefix==="count") renderCountForm();
   if(prefix==="order") renderOrderForm();
+  if(prefix==="bom") renderBom();
 }
 function clearProductSearch(prefix){
   const search=$(prefix+"ProductSearch"), box=$(prefix+"ProductResults");
@@ -434,6 +453,7 @@ function selectColor(prefix,color){
   if(input) input.value=color;
   if(prefix==="count") renderCountForm();
   if(prefix==="order") renderOrderForm();
+  if(prefix==="bom") renderBom();
 }
 function renderCountForm(){
   const p=getProduct($("countProduct").value);
@@ -682,21 +702,146 @@ function setMaterialStatus(orderId,key,status){const o=data.orders.find(x=>x.id=
 function deleteOrder(id){const o=data.orders.find(x=>x.id===id);if(!o)return;if(o.status==="已入库")return alert("已入库的生产单不能直接删除，避免库存错误");if(o.status==="已取消")return alert("已取消的生产单不建议删除，请保留记录");if(!confirm("确定删除这个未入库生产单？"))return;data.orders=data.orders.filter(o=>o.id!==id);save();renderAll();showPage("orders")}
 function confirmFinishedIn(id){const o=data.orders.find(x=>x.id===id);if(!o)return;if(o.status==="已入库")return alert("这张单已经入库过了");if(o.status==="已取消")return alert("已取消的生产单不能入库");Object.entries(o.colorQty||{}).forEach(([color,map])=>{Object.entries(map).forEach(([size,qty])=>{if(n(qty)>0){addFinishedQty(o.code,color,size,n(qty));data.finishedInRecords.push({id:uid("FI"),ts:Date.now(),date:new Date().toLocaleString(),orderId:o.id,code:o.code,color,size,qty:n(qty)})}})});o.status="已入库";o.inDate=today();save();renderAll();alert("成品已自动入库");openOrder(id)}
 
-function addBom(){
-  const b={id:uid("B"),code:$("bomProduct").value,category:"",name:$("bomName").value.trim(),spec:"",unit:"",usage:n($("bomUsage").value),price:n($("bomPrice").value),supplier:$("bomSupplier").value.trim(),remark:$("bomRemark").value.trim()};
-  if(!b.code||!b.name||b.usage<=0)return alert("请填写货号、物料名称和单耗");
-  data.boms.push(b);
-  if(b.name&&!data.materialNames.includes(b.name))data.materialNames.push(b.name);
-  ["bomName","bomUsage","bomPrice","bomSupplier","bomRemark"].forEach(id=>$(id).value="");
-  save();renderAll();alert("BOM已保存");
+const FIXED_BOM_NAMES=["裁剪","加工费","包装","吊牌","尺码表"];
+
+function bomIsFixedName(name){
+  return FIXED_BOM_NAMES.includes(String(name||"").trim());
 }
+
+function makeBomRowHtml(row, fixed=false){
+  const id=row.id||"";
+  return `<tr class="bom-editor-row ${fixed?'bom-fixed-row':''}" data-bom-id="${esc(id)}" data-fixed="${fixed?'1':'0'}">
+    <td class="bom-name-cell"><input class="bom-name" value="${esc(row.name||"")}" placeholder="请输入"></td>
+    <td class="bom-usage-cell"><input class="bom-usage" type="number" value="${row.usage!==undefined&&row.usage!==null&&row.usage!==""?esc(row.usage):""}" placeholder="单耗"></td>
+    <td class="bom-price-cell"><input class="bom-price" type="number" value="${row.price!==undefined&&row.price!==null&&row.price!==""?esc(row.price):""}" placeholder="单价"></td>
+    <td class="bom-supplier-cell"><input class="bom-supplier" value="${esc(row.supplier||"")}" placeholder="供应商"></td>
+    <td class="bom-remark-cell"><input class="bom-remark" value="${esc(row.remark||row.spec||"")}" placeholder="选填"></td>
+  </tr>`;
+}
+
+function blankBomRowHtml(){
+  return makeBomRowHtml({name:"",usage:"",price:"",supplier:"",remark:""},false);
+}
+
+function getBomEditorRows(code){
+  const saved=data.boms.filter(b=>b.code===code);
+  const custom=saved.filter(b=>!bomIsFixedName(b.name));
+  const rows=[];
+  custom.forEach(b=>rows.push({...b,fixed:false}));
+  while(rows.length<3) rows.push({name:"",usage:"",price:"",supplier:"",remark:"",fixed:false});
+
+  const fixedRows=FIXED_BOM_NAMES.map(name=>{
+    const found=saved.find(b=>String(b.name||"").trim()===name);
+    return found?{...found,fixed:true}:{name,usage:"",price:"",supplier:"",remark:"",fixed:true};
+  });
+
+  return {customRows:rows,fixedRows};
+}
+
 function renderBom(){
   const selected=$("bomProduct")?$("bomProduct").value:"";
-  const list=selected?data.boms.filter(b=>b.code===selected):data.boms;
-  $("bomList").innerHTML=list.map(b=>`<div class="item"><div class="item-head"><b>${esc(b.name)}</b><span class="tag gray">${esc(b.code)}</span></div>单耗：${b.usage}　单价：${b.price}　供应商：${esc(b.supplier||"")}<br>备注：${esc(b.remark||b.spec||"")}<br><button class="btn-small btn-red" onclick="deleteBom('${esc(b.id)}')">删除</button></div>`).join("")||`<div class="empty">暂无BOM</div>`;
+  const p=getProduct(selected);
+  const box=$("bomList");
+  if(!box)return;
+  if(!p){
+    box.innerHTML=`<div class="empty">暂无产品，请先到产品页新增</div>`;
+    return;
+  }
+
+  const {customRows,fixedRows}=getBomEditorRows(p.code);
+  box.innerHTML=`
+    <div class="bom-table-wrap">
+      <table class="bom-edit-table">
+        <thead>
+          <tr>
+            <th>物料名称</th>
+            <th>单耗</th>
+            <th>单价</th>
+            <th>供应商</th>
+            <th>备注</th>
+          </tr>
+        </thead>
+        <tbody id="bomRows">
+          ${customRows.map(r=>makeBomRowHtml(r,false)).join("")}
+          <tr class="bom-add-row"><td colspan="5"><button type="button" onclick="addBomDraftRow()">＋ 新增一行（插在裁剪上面）</button></td></tr>
+          ${fixedRows.map(r=>makeBomRowHtml(r,true)).join("")}
+        </tbody>
+      </table>
+    </div>`;
   renderMaterialNames();
 }
-function deleteBom(id){if(!confirm("确定删除BOM？已生成生产单不受影响"))return;data.boms=data.boms.filter(b=>b.id!==id);save();renderAll()}
+
+function addBomDraftRow(){
+  const addRow=document.querySelector("#bomRows .bom-add-row");
+  if(!addRow)return;
+  addRow.insertAdjacentHTML("beforebegin", blankBomRowHtml());
+}
+
+function readBomEditorRows(){
+  const code=$("bomProduct").value;
+  const rows=[];
+  const trList=[...document.querySelectorAll("#bomRows .bom-editor-row")];
+  for(let i=0;i<trList.length;i++){
+    const tr=trList[i];
+    const name=tr.querySelector(".bom-name").value.trim();
+    const usageRaw=tr.querySelector(".bom-usage").value.trim();
+    const priceRaw=tr.querySelector(".bom-price").value.trim();
+    const supplier=tr.querySelector(".bom-supplier").value.trim();
+    const remark=tr.querySelector(".bom-remark").value.trim();
+    const hasAny=!!(name||usageRaw||priceRaw||supplier||remark);
+
+    if(!hasAny) continue;
+
+    const rowNo=i+1;
+
+    if(!name){
+      alert(`第 ${rowNo} 行已填写内容，请填写物料名称`);
+      return null;
+    }
+
+    if(!usageRaw || n(usageRaw)<=0 || !priceRaw || n(priceRaw)<=0){
+      alert(`第 ${rowNo} 行已填写物料名称“${name}”，请填写单耗和单价`);
+      return null;
+    }
+
+    rows.push({
+      id:tr.dataset.bomId||uid("B"),
+      code,
+      category:"",
+      name,
+      spec:"",
+      unit:"",
+      usage:n(usageRaw),
+      price:n(priceRaw),
+      supplier,
+      remark
+    });
+  }
+  return rows;
+}
+
+function saveBomEditor(){
+  const code=$("bomProduct").value;
+  if(!code)return alert("请选择货号");
+  const rows=readBomEditorRows();
+  if(rows===null)return;
+
+  data.boms=data.boms.filter(b=>b.code!==code).concat(rows);
+  rows.forEach(b=>{
+    if(b.name&&!data.materialNames.includes(b.name))data.materialNames.push(b.name);
+  });
+
+  save();
+  renderAll();
+  alert("BOM已保存");
+}
+
+function deleteBom(id){
+  if(!confirm("确定删除BOM？已生成生产单不受影响"))return;
+  data.boms=data.boms.filter(b=>b.id!==id);
+  save();
+  renderAll();
+}
 function renderMaterialNames(){if($("materialNameList"))$("materialNameList").innerHTML=data.materialNames.map(x=>`<option value="${esc(x)}">`).join("")}
 
 function getPurchaseSummary(){

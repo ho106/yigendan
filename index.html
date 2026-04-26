@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0">
-<title>八方来财补货版 V1.29</title>
+<title>八方来财补货版 V1.30</title>
 <style>
 :root{--blue:#2f6df6;--green:#18a058;--orange:#ff7a1a;--red:#e5484d;--bg:#f5f6fa;--card:#fff;--text:#1f2937;--muted:#7b8494;--line:#e9edf5}
 *{box-sizing:border-box}
@@ -415,11 +415,91 @@ hr{border:0;border-top:1px solid var(--line);margin:12px 0}
   .qty-save-btn{padding:6px 8px!important;font-size:11px!important}
 }
 
+
+/* V1.30：物料采购状态8列一屏 + 未入库可编辑 */
+.material-card-head{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:8px}
+.material-card-head .title{margin:0}
+.material-save-btn{margin:0!important;padding:7px 9px!important;font-size:12px!important}
+.material-compact-table.v30{
+  width:100%;
+  border-collapse:collapse;
+  table-layout:fixed;
+  font-size:11px;
+}
+.material-compact-table.v30 th,
+.material-compact-table.v30 td{
+  border-bottom:1px solid var(--line);
+  padding:6px 2px;
+  text-align:center;
+  vertical-align:middle;
+  word-break:break-word;
+}
+.material-compact-table.v30 th{
+  background:#fafafa;
+  color:#4b5563;
+  font-weight:900;
+}
+.material-compact-table.v30 th:nth-child(1),.material-compact-table.v30 td:nth-child(1){width:22%;text-align:left}
+.material-compact-table.v30 th:nth-child(2),.material-compact-table.v30 td:nth-child(2){width:8%}
+.material-compact-table.v30 th:nth-child(3),.material-compact-table.v30 td:nth-child(3){width:8%}
+.material-compact-table.v30 th:nth-child(4),.material-compact-table.v30 td:nth-child(4){width:10%}
+.material-compact-table.v30 th:nth-child(5),.material-compact-table.v30 td:nth-child(5){width:11%}
+.material-compact-table.v30 th:nth-child(6),.material-compact-table.v30 td:nth-child(6){width:15%}
+.material-compact-table.v30 th:nth-child(7),.material-compact-table.v30 td:nth-child(7){width:13%}
+.material-compact-table.v30 th:nth-child(8),.material-compact-table.v30 td:nth-child(8){width:13%}
+.material-compact-table.v30 input{
+  width:100%;
+  min-width:0;
+  height:28px;
+  margin:0;
+  padding:3px 3px;
+  border-radius:7px;
+  font-size:11px;
+  text-align:center;
+}
+.material-compact-table.v30 .matName,
+.material-compact-table.v30 .matRemark,
+.material-compact-table.v30 .matSupplier{
+  text-align:left;
+}
+.material-compact-table.v30 .matRemark{
+  margin-top:3px;
+  color:#6b7280;
+}
+.material-compact-table.v30 .tag{
+  padding:4px 5px;
+  font-size:10px;
+}
+.material-compact-table.v30 .btn-small{
+  padding:5px 6px;
+  font-size:10px;
+  margin:1px 0;
+  border-radius:8px;
+}
+.material-read-name{
+  font-weight:700;
+  line-height:1.3;
+  max-width:100%;
+}
+.material-read-note{
+  color:#8b95a5;
+  font-size:10px;
+  line-height:1.25;
+  margin-top:2px;
+}
+@media(max-width:390px){
+  .material-compact-table.v30{font-size:10px}
+  .material-compact-table.v30 th,.material-compact-table.v30 td{padding:5px 1px}
+  .material-compact-table.v30 input{height:26px;font-size:10px;padding:2px}
+  .material-compact-table.v30 .btn-small{padding:4px 4px;font-size:9px}
+  .material-compact-table.v30 .tag{font-size:9px;padding:3px 4px}
+}
+
 </style>
 </head>
 <body>
 <div class="app">
-  <div class="header">八方来财补货版 V1.29</div>
+  <div class="header">八方来财补货版 V1.30</div>
 
   <section id="home" class="page active">
     <div class="grid2">
@@ -748,8 +828,11 @@ function syncOrderLatestBom(order){
     }
 
     const oldMatch=oldSnapshot.find(x=>
-      String(x.name||"")===String(b.name||"") &&
-      String(x.remark||x.spec||"")===String(b.remark||b.spec||"")
+      (x.id && b.id && String(x.id)===String(b.id)) ||
+      (
+        String(x.name||"")===String(b.name||"") &&
+        String(x.remark||x.spec||"")===String(b.remark||b.spec||"")
+      )
     );
 
     if(oldMatch){
@@ -1399,20 +1482,39 @@ function openOrder(id,keepScroll=false){
     </table></div>`;
   }).join("");
 
+  const canEditMaterial=isOpenStatus(o.status);
   const matRows=(o.materials||[]).map(m=>{
     const action=m.status==="未下单"
       ? `<button class="btn-small btn-gray" onclick="setMaterialStatus('${esc(o.id)}','${esc(m.key)}','已下单')">下单</button>`
       : m.status==="已下单"
         ? `<button class="btn-small btn-green" onclick="setMaterialStatus('${esc(o.id)}','${esc(m.key)}','已到货')">到货</button>`
         : `<button class="btn-small btn-gray" onclick="setMaterialStatus('${esc(o.id)}','${esc(m.key)}','已下单')">退回</button>`;
+
+    if(canEditMaterial){
+      return`<tr class="matEditRow" data-bom-id="${esc(m.id||"")}" data-key="${esc(m.key)}">
+        <td>
+          <input class="matName" value="${esc(m.name||"")}" placeholder="物料">
+          <input class="matRemark" value="${esc(m.remark||m.spec||"")}" placeholder="备注">
+        </td>
+        <td><input class="matUsage" type="number" value="${n(m.usage)||""}" placeholder="0"></td>
+        <td><input class="matPrice" type="number" value="${n(m.price)||""}" placeholder="0"></td>
+        <td>${m.totalNeed}</td>
+        <td>${m.cost}</td>
+        <td><input class="matSupplier" value="${esc(m.supplier||"")}" placeholder="-"></td>
+        <td><span class="tag ${m.cls}">${m.status}</span></td>
+        <td>${action}</td>
+      </tr>`;
+    }
+
     return`<tr>
-      <td>${esc(m.name)}${m.remark||m.spec?`<div class="material-name-note">${esc(m.remark||m.spec||"")}</div>`:""}</td>
+      <td><div class="material-read-name">${esc(m.name)}</div>${m.remark||m.spec?`<div class="material-read-note">${esc(m.remark||m.spec||"")}</div>`:""}</td>
       <td>${m.usage}</td>
       <td>${m.price}</td>
       <td>${m.totalNeed}</td>
+      <td>${m.cost}</td>
       <td>${esc(m.supplier||"-")}</td>
       <td><span class="tag ${m.cls}">${m.status}</span></td>
-      <td>${action}</td>
+      <td>${m.status==="已到货"?`<span class="tag ok">完成</span>`:"-"}</td>
     </tr>`;
   }).join("");
 
@@ -1448,10 +1550,13 @@ function openOrder(id,keepScroll=false){
   </div>
 
   <div class="card">
-    <div class="title">物料采购状态</div>
+    <div class="material-card-head">
+      <div class="title">物料采购状态</div>
+      ${canEditMaterial?`<button class="btn-small btn-green material-save-btn" onclick="saveOrderMaterialEdits('${esc(o.id)}')">保存物料修改</button>`:`<span class="tag gray">已锁定</span>`}
+    </div>
     <div class="table-wrap" style="overflow:visible">
-      <table class="material-compact-table">
-        <tr><th>物料</th><th>单耗</th><th>单价</th><th>总需</th><th>供应商</th><th>状态</th><th>操作</th></tr>
+      <table class="material-compact-table v30">
+        <tr><th>物料</th><th>单耗</th><th>单价</th><th>总需</th><th>金额</th><th>供应商</th><th>状态</th><th>操作</th></tr>
         ${matRows}
       </table>
     </div>
@@ -1487,6 +1592,65 @@ function saveOrderQty(orderId){
   openOrder(orderId,true);
   setTimeout(()=>window.scrollTo(0,y),0);
   alert("数量已保存，成本和利润已重新计算");
+}
+
+
+function saveOrderMaterialEdits(orderId){
+  const y=window.scrollY||document.documentElement.scrollTop||0;
+  const o=data.orders.find(x=>x.id===orderId);
+  if(!o)return;
+  if(!isOpenStatus(o.status)){
+    return alert("已入库或已取消的生产单不能直接修改物料，避免历史成本错误");
+  }
+
+  const rows=[...document.querySelectorAll(".matEditRow")];
+  if(!rows.length)return alert("没有可保存的物料行");
+
+  const edited=[];
+  for(let i=0;i<rows.length;i++){
+    const tr=rows[i];
+    const name=tr.querySelector(".matName").value.trim();
+    const remark=tr.querySelector(".matRemark").value.trim();
+    const usage=n(tr.querySelector(".matUsage").value);
+    const price=n(tr.querySelector(".matPrice").value);
+    const supplier=tr.querySelector(".matSupplier").value.trim();
+    const id=tr.dataset.bomId || uid("B");
+
+    if(!name)return alert(`第 ${i+1} 行请填写物料名称`);
+    if(usage<=0||price<=0)return alert(`第 ${i+1} 行“${name}”请填写正确的单耗和单价`);
+
+    edited.push({
+      id,
+      code:o.code,
+      category:"",
+      name,
+      spec:"",
+      unit:"",
+      usage,
+      price,
+      supplier,
+      remark
+    });
+  }
+
+  edited.forEach(b=>{
+    const idx=data.boms.findIndex(x=>String(x.id||"")===String(b.id||""));
+    if(idx>=0){
+      data.boms[idx]={...data.boms[idx],...b};
+    }else{
+      const sameIdx=data.boms.findIndex(x=>x.code===b.code && x.name===b.name && (x.remark||"")===(b.remark||""));
+      if(sameIdx>=0)data.boms[sameIdx]={...data.boms[sameIdx],...b};
+      else data.boms.push(b);
+    }
+    if(b.name&&!data.materialNames.includes(b.name))data.materialNames.push(b.name);
+  });
+
+  const synced=syncOpenOrdersLatestBom(o.code);
+  data.orders=data.orders.map(calcOrder);
+  save();
+  openOrder(orderId,true);
+  setTimeout(()=>window.scrollTo(0,y),0);
+  alert(`物料已保存，并已同步 ${synced} 张未入库生产单`);
 }
 
 function setMaterialStatus(orderId,key,status){

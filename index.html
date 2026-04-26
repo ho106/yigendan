@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0">
-<title>衣跟单 · 轻量补货版 V1.22</title>
+<title>八方来财补货版 V1.23</title>
 <style>
 :root{--blue:#2f6df6;--green:#18a058;--orange:#ff7a1a;--red:#e5484d;--bg:#f5f6fa;--card:#fff;--text:#1f2937;--muted:#7b8494;--line:#e9edf5}
 *{box-sizing:border-box}
@@ -311,11 +311,74 @@ hr{border:0;border-top:1px solid var(--line);margin:12px 0}
   .qty-two-row-color{padding:3px 5px!important;font-size:11px!important}
 }
 
+
+/* V1.23：新建生产指令单上半部分重新对齐 */
+.order-top-grid{
+  display:grid!important;
+  grid-template-columns:minmax(0,1fr) minmax(0,1fr)!important;
+  column-gap:12px!important;
+  row-gap:14px!important;
+  align-items:start!important;
+  margin-top:6px!important;
+}
+.order-top-grid>div{min-width:0!important}
+.order-top-grid label{
+  display:block!important;
+  height:24px!important;
+  line-height:24px!important;
+  margin:0 0 6px!important;
+  font-size:14px!important;
+  font-weight:900!important;
+}
+.order-top-grid input,
+.order-color-box{
+  width:100%!important;
+  height:48px!important;
+  min-height:48px!important;
+  margin:0!important;
+  border-radius:14px!important;
+  box-sizing:border-box!important;
+}
+.order-top-grid .search-select{width:100%!important;min-width:0!important}
+.order-top-grid .search-select input{
+  padding:0 12px!important;
+  font-size:15px!important;
+}
+.order-color-box{
+  border:1px solid #dbe1ea!important;
+  background:#fff!important;
+  display:flex!important;
+  align-items:center!important;
+  padding:0 10px!important;
+  overflow:hidden!important;
+}
+.order-color-box .color-pill{
+  height:34px!important;
+  margin:0!important;
+  padding:8px 14px!important;
+  border-radius:11px!important;
+  font-size:15px!important;
+  line-height:16px!important;
+}
+#orderDue,#orderTargetTotal{
+  font-size:15px!important;
+  padding:0 12px!important;
+}
+#orderTargetTotal{
+  text-align:left!important;
+}
+@media(max-width:390px){
+  .order-top-grid{column-gap:9px!important;row-gap:12px!important}
+  .order-top-grid label{font-size:13px!important;height:22px!important;line-height:22px!important}
+  .order-top-grid input,.order-color-box{height:44px!important;min-height:44px!important}
+  .order-color-box .color-pill{font-size:14px!important;padding:7px 10px!important}
+}
+
 </style>
 </head>
 <body>
 <div class="app">
-  <div class="header">衣跟单 · 轻量补货版 V1.22</div>
+  <div class="header">八方来财补货版 V1.23</div>
 
   <section id="home" class="page active">
     <div class="grid2">
@@ -795,7 +858,7 @@ function initProductSelector(prefix){
   if(!getProduct(code) && data.products[0]) code=data.products[0].code;
   hidden.value=code||"";
   const p=getProduct(code);
-  if(["count","bom"].includes(prefix)){
+  if(["count","bom","order"].includes(prefix)){
     search.value="";
     search.placeholder=p?`已选：${productLabel(p)}，输入货号搜索`:"输入货号搜索";
   }else if(p && (!search.value || !productSearchMatches(search.value).some(x=>x.code===code))){
@@ -819,7 +882,7 @@ function selectProduct(prefix,code){
   if(!hidden||!p)return;
   hidden.value=code;
   if(search){
-    if(["count","bom"].includes(prefix)){
+    if(["count","bom","order"].includes(prefix)){
       search.value="";
       search.placeholder=`已选：${productLabel(p)}，输入货号搜索`;
     }else{
@@ -838,7 +901,7 @@ function clearProductSearch(prefix){
   const search=$(prefix+"ProductSearch"), box=$(prefix+"ProductResults");
   if(search){
     search.value="";
-    if(["count","bom"].includes(prefix)) search.placeholder="输入货号搜索";
+    if(["count","bom","order"].includes(prefix)) search.placeholder="输入货号搜索";
     search.focus();
   }
   if(box){box.style.display="none";box.innerHTML="";}
@@ -1392,8 +1455,8 @@ function renderWarnings(){
 }
 function renderHome(){const open=data.orders.filter(o=>isOpenStatus(o.status));$("homeActiveCount").innerText=open.length;$("homeWarnCount").innerText=getPurchaseSummary().length;$("homeOrders").innerHTML=data.orders.slice().reverse().slice(0,5).map(orderCard).join("")||`<div class="empty">暂无生产单</div>`;const todos=[];open.filter(o=>o.status==="待入库").forEach(o=>todos.push(`生产单 ${o.id} 待确认成品入库`));const pending=getPurchaseSummary().length;if(pending)todos.push(`有 ${pending} 项物料未到货/未下单`);$("todoList").innerHTML=todos.map(t=>`<div class="item">${esc(t)}</div>`).join("")||`<div class="empty">暂无待处理事项</div>`}
 
-function exportOrdersCSV(){const rows=[["生产单","状态","货号","品名","总件数","单件成本","总成本","单件利润","总利润","物料","备注","单耗","单价","总需用","供应商","采购状态","金额"]];data.orders.forEach(o=>(o.materials||[]).forEach(m=>rows.push([o.id,o.status,o.code,o.productName,o.totalQty,o.unitCost,o.totalCost,o.profitPer,o.totalProfit,m.name,m.remark||m.spec||"",m.usage,m.price,m.totalNeed,m.supplier||"",m.status,m.cost])));downloadCSV("衣跟单生产单.csv",rows)}
-function exportPurchaseCSV(){const rows=[["生产单","货号","品名","物料","备注","需求","单价","供应商","状态","金额"]];getPurchaseSummary().forEach(x=>rows.push([x.orderId,x.code,x.productName,x.name,x.remark,x.need,x.price,x.supplier,x.status,x.amount]));downloadCSV("衣跟单待处理物料.csv",rows)}
+function exportOrdersCSV(){const rows=[["生产单","状态","货号","品名","总件数","单件成本","总成本","单件利润","总利润","物料","备注","单耗","单价","总需用","供应商","采购状态","金额"]];data.orders.forEach(o=>(o.materials||[]).forEach(m=>rows.push([o.id,o.status,o.code,o.productName,o.totalQty,o.unitCost,o.totalCost,o.profitPer,o.totalProfit,m.name,m.remark||m.spec||"",m.usage,m.price,m.totalNeed,m.supplier||"",m.status,m.cost])));downloadCSV("八方来财生产单.csv",rows)}
+function exportPurchaseCSV(){const rows=[["生产单","货号","品名","物料","备注","需求","单价","供应商","状态","金额"]];getPurchaseSummary().forEach(x=>rows.push([x.orderId,x.code,x.productName,x.name,x.remark,x.need,x.price,x.supplier,x.status,x.amount]));downloadCSV("八方来财待处理物料.csv",rows)}
 function downloadCSV(name,rows){const csv=rows.map(r=>r.map(v=>`"${String(v??"").replace(/"/g,'""')}"`).join(",")).join("\n");const a=document.createElement("a");a.href=URL.createObjectURL(new Blob(["\ufeff"+csv],{type:"text/csv;charset=utf-8"}));a.download=name;a.click()}
 function backupData(){$("backupBox").value=JSON.stringify(data);$("backupBox").select();alert("备份内容已生成，请复制保存")}
 function restoreData(){if(!confirm("导入备份会覆盖当前数据，确定继续？"))return;try{const obj=JSON.parse($("backupBox").value);if(!obj.products||!obj.boms)throw new Error();data=obj;save();renderAll();alert("导入成功")}catch(e){alert("导入失败，格式不对")}}

@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0">
-<title>八方来财补货版 V1.30</title>
+<title>八方来财补货版 V1.31</title>
 <style>
 :root{--blue:#2f6df6;--green:#18a058;--orange:#ff7a1a;--red:#e5484d;--bg:#f5f6fa;--card:#fff;--text:#1f2937;--muted:#7b8494;--line:#e9edf5}
 *{box-sizing:border-box}
@@ -495,11 +495,74 @@ hr{border:0;border-top:1px solid var(--line);margin:12px 0}
   .material-compact-table.v30 .tag{font-size:9px;padding:3px 4px}
 }
 
+
+/* V1.31：物料采购状态9列紧凑版，备注放供应商后面 */
+.material-compact-table.v30{
+  width:100%!important;
+  table-layout:fixed!important;
+  font-size:10px!important;
+}
+.material-compact-table.v30 th,
+.material-compact-table.v30 td{
+  padding:4px 1px!important;
+  line-height:1.2!important;
+}
+.material-compact-table.v30 th:nth-child(1),.material-compact-table.v30 td:nth-child(1){width:16%!important;text-align:left!important}
+.material-compact-table.v30 th:nth-child(2),.material-compact-table.v30 td:nth-child(2){width:7%!important}
+.material-compact-table.v30 th:nth-child(3),.material-compact-table.v30 td:nth-child(3){width:7%!important}
+.material-compact-table.v30 th:nth-child(4),.material-compact-table.v30 td:nth-child(4){width:9%!important}
+.material-compact-table.v30 th:nth-child(5),.material-compact-table.v30 td:nth-child(5){width:9%!important}
+.material-compact-table.v30 th:nth-child(6),.material-compact-table.v30 td:nth-child(6){width:12%!important}
+.material-compact-table.v30 th:nth-child(7),.material-compact-table.v30 td:nth-child(7){width:12%!important}
+.material-compact-table.v30 th:nth-child(8),.material-compact-table.v30 td:nth-child(8){width:13%!important}
+.material-compact-table.v30 th:nth-child(9),.material-compact-table.v30 td:nth-child(9){width:15%!important}
+.material-compact-table.v30 input{
+  height:24px!important;
+  padding:2px 2px!important;
+  border-radius:6px!important;
+  font-size:10px!important;
+}
+.material-compact-table.v30 .matName,
+.material-compact-table.v30 .matSupplier,
+.material-compact-table.v30 .matRemark{
+  text-align:left!important;
+}
+.material-compact-table.v30 .matRemark{
+  margin-top:0!important;
+  color:#111827!important;
+}
+.material-compact-table.v30 .tag{
+  padding:3px 4px!important;
+  font-size:9px!important;
+  border-radius:7px!important;
+  white-space:nowrap!important;
+}
+.material-compact-table.v30 .btn-small{
+  padding:4px 4px!important;
+  font-size:9px!important;
+  border-radius:7px!important;
+  white-space:nowrap!important;
+}
+.material-card-head{margin-bottom:6px!important}
+.material-save-btn{padding:6px 8px!important;font-size:11px!important}
+.material-read-name,.material-read-note{
+  line-height:1.2!important;
+  font-size:10px!important;
+}
+@media(max-width:390px){
+  .material-compact-table.v30{font-size:9px!important}
+  .material-compact-table.v30 th,
+  .material-compact-table.v30 td{padding:3px 1px!important}
+  .material-compact-table.v30 input{height:22px!important;font-size:9px!important}
+  .material-compact-table.v30 .btn-small{font-size:8px!important;padding:3px 3px!important}
+  .material-compact-table.v30 .tag{font-size:8px!important;padding:3px 3px!important}
+}
+
 </style>
 </head>
 <body>
 <div class="app">
-  <div class="header">八方来财补货版 V1.30</div>
+  <div class="header">八方来财补货版 V1.31</div>
 
   <section id="home" class="page active">
     <div class="grid2">
@@ -1492,27 +1555,26 @@ function openOrder(id,keepScroll=false){
 
     if(canEditMaterial){
       return`<tr class="matEditRow" data-bom-id="${esc(m.id||"")}" data-key="${esc(m.key)}">
-        <td>
-          <input class="matName" value="${esc(m.name||"")}" placeholder="物料">
-          <input class="matRemark" value="${esc(m.remark||m.spec||"")}" placeholder="备注">
-        </td>
+        <td><input class="matName" value="${esc(m.name||"")}" placeholder="物料"></td>
         <td><input class="matUsage" type="number" value="${n(m.usage)||""}" placeholder="0"></td>
         <td><input class="matPrice" type="number" value="${n(m.price)||""}" placeholder="0"></td>
         <td>${m.totalNeed}</td>
         <td>${m.cost}</td>
         <td><input class="matSupplier" value="${esc(m.supplier||"")}" placeholder="-"></td>
+        <td><input class="matRemark" value="${esc(m.remark||m.spec||"")}" placeholder="备注"></td>
         <td><span class="tag ${m.cls}">${m.status}</span></td>
         <td>${action}</td>
       </tr>`;
     }
 
     return`<tr>
-      <td><div class="material-read-name">${esc(m.name)}</div>${m.remark||m.spec?`<div class="material-read-note">${esc(m.remark||m.spec||"")}</div>`:""}</td>
+      <td><div class="material-read-name">${esc(m.name)}</div></td>
       <td>${m.usage}</td>
       <td>${m.price}</td>
       <td>${m.totalNeed}</td>
       <td>${m.cost}</td>
       <td>${esc(m.supplier||"-")}</td>
+      <td>${esc(m.remark||m.spec||"-")}</td>
       <td><span class="tag ${m.cls}">${m.status}</span></td>
       <td>${m.status==="已到货"?`<span class="tag ok">完成</span>`:"-"}</td>
     </tr>`;
@@ -1556,7 +1618,7 @@ function openOrder(id,keepScroll=false){
     </div>
     <div class="table-wrap" style="overflow:visible">
       <table class="material-compact-table v30">
-        <tr><th>物料</th><th>单耗</th><th>单价</th><th>总需</th><th>金额</th><th>供应商</th><th>状态</th><th>操作</th></tr>
+        <tr><th>物料</th><th>单耗</th><th>单价</th><th>总需</th><th>金额</th><th>供应商</th><th>备注</th><th>状态</th><th>操作</th></tr>
         ${matRows}
       </table>
     </div>

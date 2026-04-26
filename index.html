@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0">
-<title>衣跟单 · 轻量补货版 V1.20</title>
+<title>衣跟单 · 轻量补货版 V1.21</title>
 <style>
 :root{--blue:#2f6df6;--green:#18a058;--orange:#ff7a1a;--red:#e5484d;--bg:#f5f6fa;--card:#fff;--text:#1f2937;--muted:#7b8494;--line:#e9edf5}
 *{box-sizing:border-box}
@@ -264,11 +264,26 @@ hr{border:0;border-top:1px solid var(--line);margin:12px 0}
   .material-compact-table .btn-small{padding:4px 5px;font-size:10px}
 }
 
+
+/* V1.21：只修改生产单详情里的颜色尺码数量模块 */
+.qty-two-row-wrap{width:100%;overflow-x:auto;-webkit-overflow-scrolling:touch}
+.qty-two-row-table{width:100%;min-width:520px;border-collapse:collapse;table-layout:fixed;font-size:14px;text-align:center}
+.qty-two-row-table td{border-bottom:1px solid var(--line);padding:9px 4px;white-space:nowrap}
+.qty-two-row-table tr:first-child td{font-weight:900}
+.qty-two-row-table tr:last-child td{border-bottom:0}
+.qty-two-row-table td:first-child{width:76px;text-align:left;font-weight:900;color:#111827}
+.qty-two-row-color{display:inline-block;background:#eef4ff;color:#2563eb;border-radius:9px;padding:5px 9px;font-weight:900}
+@media(max-width:430px){
+  .qty-two-row-table{min-width:480px;font-size:13px}
+  .qty-two-row-table td{padding:8px 3px}
+  .qty-two-row-table td:first-child{width:68px}
+}
+
 </style>
 </head>
 <body>
 <div class="app">
-  <div class="header">衣跟单 · 轻量补货版 V1.20</div>
+  <div class="header">衣跟单 · 轻量补货版 V1.21</div>
 
   <section id="home" class="page active">
     <div class="grid2">
@@ -1108,8 +1123,13 @@ function openOrder(id,keepScroll=false){
   const o=data.orders.find(x=>x.id===id);if(!o)return;
 
   const qtyRows=Object.entries(o.colorQty||{}).map(([color,map])=>{
-    const chips=Object.keys(map).map(s=>`<span class="qty-chip">${esc(s)}:${n(map[s])}</span>`).join("");
-    return `<div class="qty-compact-row"><span class="qty-color-chip">${esc(color)}</span>${chips}</div>`;
+    const sizes=Object.keys(map);
+    const sizeCells=sizes.map(s=>`<td>${esc(s)}</td>`).join("");
+    const qtyCells=sizes.map(s=>`<td>${n(map[s])}</td>`).join("");
+    return `<div class="qty-two-row-wrap"><table class="qty-two-row-table">
+      <tr><td><span class="qty-two-row-color">${esc(color)}</span></td>${sizeCells}</tr>
+      <tr><td>数量</td>${qtyCells}</tr>
+    </table></div>`;
   }).join("");
 
   const matRows=(o.materials||[]).map(m=>{

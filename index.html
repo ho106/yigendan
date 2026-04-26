@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0">
-<title>衣跟单 · 轻量补货版 V1.18</title>
+<title>衣跟单 · 轻量补货版 V1.19</title>
 <style>
 :root{--blue:#2f6df6;--green:#18a058;--orange:#ff7a1a;--red:#e5484d;--bg:#f5f6fa;--card:#fff;--text:#1f2937;--muted:#7b8494;--line:#e9edf5}
 *{box-sizing:border-box}
@@ -234,11 +234,41 @@ hr{border:0;border-top:1px solid var(--line);margin:12px 0}
   .order-list-money{font-size:15px}
 }
 
+
+/* V1.19：生产单详情页紧凑版 */
+.detail-summary{line-height:1.65}
+.detail-money-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px 12px;margin:8px 0;font-size:14px}
+.detail-action-row{display:flex;gap:7px;flex-wrap:wrap;margin-top:10px}
+.detail-action-row button{margin:0;padding:9px 10px;font-size:13px}
+.qty-compact-wrap{display:flex;flex-direction:column;gap:8px}
+.qty-compact-row{display:flex;align-items:center;gap:8px;flex-wrap:wrap;border:1px solid var(--line);background:#fbfcff;border-radius:12px;padding:9px}
+.qty-color-chip{background:#eef4ff;color:#2563eb;border-radius:10px;padding:6px 10px;font-weight:900;white-space:nowrap}
+.qty-chip{border:1px solid #dbe1ea;border-radius:9px;background:#fff;padding:6px 8px;white-space:nowrap;font-size:13px}
+.material-compact-table{width:100%;border-collapse:collapse;table-layout:fixed;font-size:12px}
+.material-compact-table th,.material-compact-table td{border-bottom:1px solid var(--line);padding:7px 3px;text-align:center;vertical-align:middle;word-break:break-all}
+.material-compact-table th{background:#fafafa;color:#4b5563;font-weight:900}
+.material-compact-table th:nth-child(1),.material-compact-table td:nth-child(1){width:22%;text-align:left}
+.material-compact-table th:nth-child(2),.material-compact-table td:nth-child(2){width:11%}
+.material-compact-table th:nth-child(3),.material-compact-table td:nth-child(3){width:11%}
+.material-compact-table th:nth-child(4),.material-compact-table td:nth-child(4){width:13%}
+.material-compact-table th:nth-child(5),.material-compact-table td:nth-child(5){width:16%}
+.material-compact-table th:nth-child(6),.material-compact-table td:nth-child(6){width:13%}
+.material-compact-table th:nth-child(7),.material-compact-table td:nth-child(7){width:14%}
+.material-compact-table .tag{padding:4px 6px;font-size:11px}
+.material-compact-table .btn-small{padding:5px 7px;font-size:11px;margin:2px 0;border-radius:8px}
+.material-name-note{color:#8b95a5;font-size:11px;margin-top:2px}
+@media(max-width:390px){
+  .detail-money-grid{grid-template-columns:1fr 1fr;font-size:13px}
+  .material-compact-table{font-size:11px}
+  .material-compact-table th,.material-compact-table td{padding:6px 2px}
+  .material-compact-table .btn-small{padding:4px 5px;font-size:10px}
+}
+
 </style>
 </head>
 <body>
 <div class="app">
-  <div class="header">衣跟单 · 轻量补货版 V1.18</div>
+  <div class="header">衣跟单 · 轻量补货版 V1.19</div>
 
   <section id="home" class="page active">
     <div class="grid2">
@@ -1075,30 +1105,63 @@ function orderCard(o){const mat=o.materialReady?"物料已齐套":`未下单${o.
 </div>`}
 function openOrder(id){
   const o=data.orders.find(x=>x.id===id);if(!o)return;
-  const qtyRows=Object.entries(o.colorQty||{}).map(([color,map])=>`<tr><td>${esc(color)}</td>${Object.keys(map).map(s=>`<td>${esc(s)}:${n(map[s])}</td>`).join("")}</tr>`).join("");
+
+  const qtyRows=Object.entries(o.colorQty||{}).map(([color,map])=>{
+    const chips=Object.keys(map).map(s=>`<span class="qty-chip">${esc(s)}:${n(map[s])}</span>`).join("");
+    return `<div class="qty-compact-row"><span class="qty-color-chip">${esc(color)}</span>${chips}</div>`;
+  }).join("");
+
   const matRows=(o.materials||[]).map(m=>{
     const action=m.status==="未下单"
-      ? `<button class="btn-small btn-orange" onclick="setMaterialStatus('${esc(o.id)}','${esc(m.key)}','已下单')">已下单</button>`
+      ? `<button class="btn-small btn-gray" onclick="setMaterialStatus('${esc(o.id)}','${esc(m.key)}','已下单')">下单</button>`
       : m.status==="已下单"
-        ? `<button class="btn-small btn-green" onclick="setMaterialStatus('${esc(o.id)}','${esc(m.key)}','已到货')">已到货</button>`
-        : `<span class="tag ok">已完成</span>`;
-    const back=m.status==="已到货"?`<button class="btn-small btn-gray" onclick="setMaterialStatus('${esc(o.id)}','${esc(m.key)}','已下单')">退回</button>`:"";
-    return`<tr><td>${esc(m.name)}<br><span class="sub">${esc(m.remark||m.spec||"")}</span></td><td>${m.usage}</td><td>${m.price}</td><td>${m.totalNeed}</td><td>${esc(m.supplier||"")}</td><td><span class="tag ${m.cls}">${m.status}</span></td><td>${action} ${back}</td><td>${m.cost}</td></tr>`;
+        ? `<button class="btn-small btn-green" onclick="setMaterialStatus('${esc(o.id)}','${esc(m.key)}','已到货')">到货</button>`
+        : `<button class="btn-small btn-gray" onclick="setMaterialStatus('${esc(o.id)}','${esc(m.key)}','已下单')">退回</button>`;
+    return`<tr>
+      <td>${esc(m.name)}${m.remark||m.spec?`<div class="material-name-note">${esc(m.remark||m.spec||"")}</div>`:""}</td>
+      <td>${m.usage}</td>
+      <td>${m.price}</td>
+      <td>${m.totalNeed}</td>
+      <td>${esc(m.supplier||"-")}</td>
+      <td><span class="tag ${m.cls}">${m.status}</span></td>
+      <td>${action}</td>
+    </tr>`;
   }).join("");
+
   const materialSummary=o.materialReady?`<span class="tag ok">物料已齐套</span>`:`<span class="tag warn">未下单${o.materialNotOrdered||0}项 / 已下单${o.materialOrdered||0}项</span>`;
-  $("detailBox").innerHTML=`<div class="card"><div class="title">${esc(o.id)} <button class="btn-small btn-gray" onclick="showPage('orders')">返回</button></div>
-    ${esc(o.code)} - ${esc(o.productName||"")}<br>
-    总数：${o.totalQty||0}件　状态：${orderStatusTag(o)}<br>
-    ${materialSummary}<br>
-    单件成本：${o.unitCost||0}　总成本：${o.totalCost||0}<br>
-    单件利润：${o.profitPer||0}　总利润：${o.totalProfit||0}　利润率：${o.margin||0}%
-    <hr><button class="btn-small btn-orange" onclick="setOrderStatus('${o.id}','生产中')">生产中</button>
-    <button class="btn-small btn-green" onclick="setOrderStatus('${o.id}','待入库')">待入库</button>
-    <button class="btn-small btn-green" onclick="confirmFinishedIn('${o.id}')">确认成品入库</button>
-    <button class="btn-small btn-red" onclick="confirmCancelOrder('${o.id}')">取消</button>
-    <button class="btn-small btn-red" onclick="deleteOrder('${o.id}')">删除</button></div>
-    <div class="card"><div class="title">颜色尺码数量</div><div class="table-wrap"><table class="table">${qtyRows}</table></div></div>
-    <div class="card"><div class="title">物料采购状态</div><div class="sub">按这张指令单直接操作：未下单 → 已下单 → 已到货。</div><div class="table-wrap"><table class="table"><tr><th>物料</th><th>单耗</th><th>单价</th><th>总需</th><th>供应商</th><th>状态</th><th>操作</th><th>金额</th></tr>${matRows}</table></div></div>`;
+
+  $("detailBox").innerHTML=`<div class="card detail-summary">
+    <div class="title">${esc(o.id)} <button class="btn-small btn-gray" onclick="showPage('orders')">返回</button></div>
+    <div>${esc(o.code)} - ${esc(o.productName||"")} · ${o.totalQty||0}件　${orderStatusTag(o)}</div>
+    <div style="margin-top:6px">${materialSummary}</div>
+    <div class="detail-money-grid">
+      <div>单件成本：<b>${o.unitCost||0}</b></div>
+      <div>总成本：<b>${o.totalCost||0}</b></div>
+      <div>单件利润：<b>${o.profitPer||0}</b></div>
+      <div>总利润：<b>${o.totalProfit||0}</b></div>
+      <div>利润率：<b>${o.margin||0}%</b></div>
+    </div>
+    <hr>
+    <div class="detail-action-row">
+      <button class="btn-orange" onclick="setOrderStatus('${o.id}','生产中')">生产中</button>
+      <button class="btn-green" onclick="setOrderStatus('${o.id}','待入库')">待入库</button>
+      <button class="btn-green" onclick="confirmFinishedIn('${o.id}')">确认成品入库</button>
+      <button class="btn-red" onclick="confirmCancelOrder('${o.id}')">取消</button>
+      <button class="btn-red" onclick="deleteOrder('${o.id}')">删除</button>
+    </div>
+  </div>
+
+  <div class="card"><div class="title">颜色尺码数量</div><div class="qty-compact-wrap">${qtyRows||'<div class="empty">暂无数量</div>'}</div></div>
+
+  <div class="card">
+    <div class="title">物料采购状态</div>
+    <div class="table-wrap" style="overflow:visible">
+      <table class="material-compact-table">
+        <tr><th>物料</th><th>单耗</th><th>单价</th><th>总需</th><th>供应商</th><th>状态</th><th>操作</th></tr>
+        ${matRows}
+      </table>
+    </div>
+  </div>`;
   showPage("detail");
 }
 function setOrderStatus(id,status){const o=data.orders.find(x=>x.id===id);if(!o)return;o.status=status;save();renderAll();openOrder(id)}

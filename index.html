@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0">
-<title>衣跟单 · 轻量补货版 V1.17</title>
+<title>衣跟单 · 轻量补货版 V1.18</title>
 <style>
 :root{--blue:#2f6df6;--green:#18a058;--orange:#ff7a1a;--red:#e5484d;--bg:#f5f6fa;--card:#fff;--text:#1f2937;--muted:#7b8494;--line:#e9edf5}
 *{box-sizing:border-box}
@@ -192,11 +192,53 @@ hr{border:0;border-top:1px solid var(--line);margin:12px 0}
   .bom-remark-cell{width:25%!important}
 }
 
+
+/* V1.18：下单页重新排版 */
+.order-top-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:4px}
+.order-top-grid label{margin-top:0}
+.order-top-grid input{height:46px;margin:6px 0 0}
+.order-color-box{height:46px;border:1px solid #dbe1ea;border-radius:12px;background:#fff;display:flex;align-items:center;padding:0 10px;margin-top:6px;overflow:hidden}
+.order-color-box .color-pill{height:32px;line-height:14px;padding:7px 12px;margin:0;border-radius:10px}
+.order-color-box .sub{font-size:13px}
+.order-suggest-card{border:1px solid #dfe5ef;border-radius:14px;background:#fff;margin-top:16px;overflow:hidden}
+.order-suggest-head{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:12px 12px 8px}
+.order-suggest-title{font-size:18px;font-weight:900}
+.order-suggest-actions{display:flex;gap:8px;flex-wrap:wrap;justify-content:flex-end}
+.order-suggest-actions button{margin:0;background:#eef4ff;color:#2563eb;border:1px solid #d5e4ff}
+.order-size-wrap{overflow-x:auto;-webkit-overflow-scrolling:touch}
+.order-size-table{width:100%;min-width:620px;border-collapse:collapse;font-size:13px;text-align:center}
+.order-size-table th,.order-size-table td{border:1px solid #e2e8f0;padding:7px 5px}
+.order-size-table th:first-child,.order-size-table td:first-child{font-weight:900;background:#fbfcff;min-width:78px}
+.order-size-table input{height:36px;margin:0;text-align:center;border-radius:9px;padding:5px;font-size:14px}
+.order-size-table .suggestQty{color:#2563eb;font-weight:900;background:#f6f9ff}
+.order-size-total{display:grid;grid-template-columns:1fr 1fr;background:#f3f7ff;margin:10px 12px 12px;border-radius:12px;overflow:hidden;font-weight:900;text-align:center}
+.order-size-total div{padding:10px;border-right:1px solid #dce6fb}
+.order-size-total div:last-child{border-right:0}
+.order-size-total span{color:#2563eb}
+.order-generate-btn{width:100%;margin-top:14px}
+.order-list-head{display:flex;align-items:center;justify-content:space-between;gap:10px}
+.order-list-head select{width:150px;margin:0;height:44px}
+.order-list-item{background:#fafbff;border:1px solid #e4e8f0;border-radius:14px;padding:14px;margin:10px 0}
+.order-list-item .item-head{align-items:flex-start}
+.order-list-id{font-size:22px;font-weight:900;letter-spacing:.3px}
+.order-list-main{font-size:17px;line-height:1.6;margin-top:4px}
+.order-list-money{font-size:16px;line-height:1.7;margin-top:2px}
+.order-list-bottom{display:flex;gap:18px;flex-wrap:wrap;font-size:15px;margin-top:10px}
+@media(max-width:430px){
+  .order-top-grid{grid-template-columns:1fr 1fr;gap:9px}
+  .order-top-grid input,.order-color-box{height:42px}
+  .order-size-table{min-width:560px;font-size:12px}
+  .order-size-table th,.order-size-table td{padding:6px 4px}
+  .order-list-id{font-size:19px}
+  .order-list-main{font-size:15px}
+  .order-list-money{font-size:15px}
+}
+
 </style>
 </head>
 <body>
 <div class="app">
-  <div class="header">衣跟单 · 轻量补货版 V1.17</div>
+  <div class="header">衣跟单 · 轻量补货版 V1.18</div>
 
   <section id="home" class="page active">
     <div class="grid2">
@@ -315,32 +357,46 @@ hr{border:0;border-top:1px solid var(--line);margin:12px 0}
   <section id="orders" class="page">
     <div class="card">
       <div class="title">新建生产指令单</div>
-      <label>选择货号</label>
-      <div class="search-select">
-        <input id="orderProductSearch" placeholder="输入货号，例如 26" oninput="renderProductSearch('order')" onfocus="renderProductSearch('order')">
-        <input type="hidden" id="orderProduct">
-        <div id="orderProductResults" class="suggest-list" style="display:none"></div>
+
+      <div class="order-top-grid">
+        <div>
+          <label>货号</label>
+          <div class="search-select">
+            <input id="orderProductSearch" placeholder="输入货号，例如 26" oninput="renderProductSearch('order')" onfocus="renderProductSearch('order')">
+            <input type="hidden" id="orderProduct">
+            <div id="orderProductResults" class="suggest-list" style="display:none"></div>
+          </div>
+        </div>
+
+        <div>
+          <label>颜色</label>
+          <div id="orderColorOptions" class="color-options order-color-box"></div>
+          <input id="orderColor" type="hidden" oninput="renderOrderForm()">
+        </div>
+
+        <div>
+          <label>预计交货日期</label>
+          <input id="orderDue" type="date">
+        </div>
+
+        <div>
+          <label>总补货目标</label>
+          <input id="orderTargetTotal" type="number" placeholder="可不填">
+        </div>
       </div>
-      <div id="orderProductSelected"></div>
-      <label>颜色</label>
-      <div id="orderColorOptions" class="color-options"></div>
-      <input id="orderColor" placeholder="临时新增颜色" oninput="renderOrderForm()">
-      <div class="row2">
-        <div><label>预计交货日期</label><input id="orderDue" type="date"></div>
-        <div><label>总补货目标</label><input id="orderTargetTotal" type="number" placeholder="可不填"></div>
-      </div>
-      <button class="btn-gray btn-small" onclick="autoFillByTarget()">按总目标自动分配</button>
-      <button class="btn-gray btn-small" onclick="copySuggestToOrder()">使用建议数量</button>
-      <button class="btn-gray btn-small" onclick="clearOrderQty()">清空下单数量</button>
+
       <div id="orderInputs"></div>
-      <button onclick="createOrder()">生成生产指令单</button>
+      <button class="order-generate-btn" onclick="createOrder()">生成生产指令单</button>
       <div class="sub">新款没有历史数据时，建议数量默认0，你手动填。老款会根据库存、在途、目标库存给建议。</div>
     </div>
+
     <div class="card">
-      <div class="title">生产单列表</div>
-      <select id="orderFilter" onchange="renderOrders()">
-        <option value="open">未入库</option><option value="all">全部</option><option value="已入库">已入库</option><option value="已取消">已取消</option>
-      </select>
+      <div class="order-list-head">
+        <div class="title" style="margin:0">生产单列表</div>
+        <select id="orderFilter" onchange="renderOrders()">
+          <option value="open">未入库</option><option value="all">全部</option><option value="已入库">已入库</option><option value="已取消">已取消</option>
+        </select>
+      </div>
       <div id="orderList"></div>
     </div>
   </section>
@@ -903,14 +959,60 @@ function renderOrderForm(){
   if(!color){$("orderInputs").innerHTML=`<div class="empty">请选择或输入颜色</div>`;return}
   const recentSales=getRecentSalesBySize(p.code,color);
   const hasSales=Object.values(recentSales).reduce((a,b)=>a+n(b),0)>0;
-  $("orderInputs").innerHTML=p.sizes.map(size=>{
+
+  const th=p.sizes.map(size=>`<th>${esc(size)}码</th>`).join("");
+  const rowStock=p.sizes.map(size=>`<td>${getFinishedQty(p.code,color,size)}</td>`).join("");
+  const rowTransit=p.sizes.map(size=>`<td>${getTransitQty(p.code,color,size)}</td>`).join("");
+  const rowSold=p.sizes.map(size=>`<td>${n(recentSales[size])}</td>`).join("");
+  const rowTarget=p.sizes.map(size=>`<td><input class="targetQty" data-size="${esc(size)}" type="number" placeholder="可不填"></td>`).join("");
+  const rowSuggest=p.sizes.map(size=>{
     const stock=getFinishedQty(p.code,color,size);
     const transit=getTransitQty(p.code,color,size);
     const sold=n(recentSales[size]);
     const suggest=hasSales?Math.max(0,sold-stock-transit):0;
-    return `<div class="size-input-row"><b>${esc(size)}码</b><br>现货：${stock}　在途：${transit}　最近销量：${sold}<div class="row3"><div><label>目标库存</label><input class="targetQty" data-size="${esc(size)}" type="number" placeholder="可不填"></div><div><label>建议</label><input class="suggestQty" data-size="${esc(size)}" type="number" value="${suggest}" readonly></div><div><label>下单</label><input class="orderQty" data-size="${esc(size)}" type="number" placeholder="0"></div></div></div>`;
+    return `<td><input class="suggestQty" data-size="${esc(size)}" type="number" value="${suggest}" readonly></td>`;
   }).join("");
+  const rowOrder=p.sizes.map(size=>`<td><input class="orderQty" data-size="${esc(size)}" type="number" placeholder="0" value=""></td>`).join("");
+
+  $("orderInputs").innerHTML=`
+    <div class="order-suggest-card">
+      <div class="order-suggest-head">
+        <div class="order-suggest-title">尺码建议</div>
+        <div class="order-suggest-actions">
+          <button class="btn-small" onclick="autoFillByTarget()">按总目标自动分配</button>
+          <button class="btn-small" onclick="copySuggestToOrder()">使用建议数量</button>
+          <button class="btn-small" onclick="clearOrderQty()">清空下单数量</button>
+        </div>
+      </div>
+      <div class="order-size-wrap">
+        <table class="order-size-table">
+          <tr><th>尺码</th>${th}<th>合计</th></tr>
+          <tr><td>现货</td>${rowStock}<td>${p.sizes.reduce((s,size)=>s+getFinishedQty(p.code,color,size),0)}</td></tr>
+          <tr><td>在途</td>${rowTransit}<td>${p.sizes.reduce((s,size)=>s+getTransitQty(p.code,color,size),0)}</td></tr>
+          <tr><td>最近销量</td>${rowSold}<td>${p.sizes.reduce((s,size)=>s+n(recentSales[size]),0)}</td></tr>
+          <tr><td>目标库存</td>${rowTarget}<td>-</td></tr>
+          <tr><td>建议</td>${rowSuggest}<td id="suggestTotal">0</td></tr>
+          <tr><td>下单</td>${rowOrder}<td id="orderQtyTotal">0</td></tr>
+        </table>
+      </div>
+      <div class="order-size-total"><div>合计建议：<span id="suggestTotalBar">0件</span></div><div>合计下单：<span id="orderQtyTotalBar">0件</span></div></div>
+    </div>`;
+  bindOrderQtyTotal();
+  updateOrderTotals();
 }
+
+function bindOrderQtyTotal(){
+  document.querySelectorAll(".orderQty,.suggestQty").forEach(i=>{i.oninput=updateOrderTotals;});
+}
+function updateOrderTotals(){
+  const sug=[...document.querySelectorAll(".suggestQty")].reduce((s,i)=>s+n(i.value),0);
+  const ord=[...document.querySelectorAll(".orderQty")].reduce((s,i)=>s+n(i.value),0);
+  if($("suggestTotal"))$("suggestTotal").innerText=sug;
+  if($("orderQtyTotal"))$("orderQtyTotal").innerText=ord;
+  if($("suggestTotalBar"))$("suggestTotalBar").innerText=sug+"件";
+  if($("orderQtyTotalBar"))$("orderQtyTotalBar").innerText=ord+"件";
+}
+
 function setInputBySize(className,size,value){
   document.querySelectorAll("." + className).forEach(input=>{
     if(input.dataset.size===size) input.value=value;
@@ -938,17 +1040,39 @@ function autoFillByTarget(){
     const sug=Math.max(0,target-stock-transit);
     setInputBySize("suggestQty",size,sug);
   });
+  updateOrderTotals();
 }
 function copySuggestToOrder(){
   document.querySelectorAll(".suggestQty").forEach(i=>{
     setInputBySize("orderQty",i.dataset.size,i.value);
   });
+  updateOrderTotals();
 }
-function clearOrderQty(){document.querySelectorAll(".orderQty").forEach(i=>i.value="")}
-function createOrder(){const p=getProduct($("orderProduct").value),color=$("orderColor").value.trim();if(!p||!color)return alert("请选择货号和颜色");const qtyMap={};document.querySelectorAll(".orderQty").forEach(i=>qtyMap[i.dataset.size]=n(i.value));const total=Object.values(qtyMap).reduce((a,b)=>a+n(b),0);if(total<=0)return alert("请填写下单数量");if(!getBoms(p.code).length)return alert("该货号还没有BOM，请先录入BOM");const order={id:"ORD-"+Date.now(),code:p.code,productName:p.name,colorQty:{[color]:qtyMap},status:"待生产",created:today(),dueDate:$("orderDue").value||"",bomSnapshot:snapshotBoms(p.code),materialStatus:{},note:""};data.orders.push(calcOrder(order));save();renderAll();alert("生产指令单已生成");showPage("orders")}
+function clearOrderQty(){document.querySelectorAll(".orderQty").forEach(i=>i.value="");updateOrderTotals()}
+
+function makeOrderId(code){
+  const d=today().replaceAll("-","");
+  const base=d+"-"+code;
+  const used=data.orders.map(o=>String(o.id||""));
+  if(!used.includes(base))return base;
+  let i=2;
+  while(used.includes(base+"-"+i))i++;
+  return base+"-"+i;
+}
+function orderDisplayId(o){
+  return esc(o.id||"");
+}
+
+function createOrder(){const p=getProduct($("orderProduct").value),color=$("orderColor").value.trim();if(!p||!color)return alert("请选择货号和颜色");const qtyMap={};document.querySelectorAll(".orderQty").forEach(i=>qtyMap[i.dataset.size]=n(i.value));const total=Object.values(qtyMap).reduce((a,b)=>a+n(b),0);if(total<=0)return alert("请填写下单数量");if(!getBoms(p.code).length)return alert("该货号还没有BOM，请先录入BOM");const order={id:makeOrderId(p.code),code:p.code,productName:p.name,colorQty:{[color]:qtyMap},status:"待生产",created:today(),dueDate:$("orderDue").value||"",bomSnapshot:snapshotBoms(p.code),materialStatus:{},note:""};data.orders.push(calcOrder(order));save();renderAll();alert("生产指令单已生成");showPage("orders")}
 function renderOrders(){const f=$("orderFilter").value;let list=data.orders.slice().reverse();if(f==="open")list=list.filter(o=>isOpenStatus(o.status));else if(f!=="all")list=list.filter(o=>o.status===f);$("orderList").innerHTML=list.map(orderCard).join("")||`<div class="empty">暂无生产单</div>`}
 function orderStatusTag(o){if(o.status==="已入库")return`<span class="tag ok">已入库</span>`;if(o.status==="已取消")return`<span class="tag gray">已取消</span>`;return`<span class="tag ${o.warningCount?'warn':'ok'}">${esc(o.status||"待生产")}</span>`}
-function orderCard(o){const mat=o.materialReady?"物料已齐套":`未下单${o.materialNotOrdered||0}项　已下单${o.materialOrdered||0}项`;return`<div class="item" onclick="openOrder('${esc(o.id)}')"><div class="item-head"><b>${esc(o.id)}</b>${orderStatusTag(o)}</div>${esc(o.code)} ${esc(o.productName||o.product_name||"")} · ${o.totalQty||0}件<br>成本：${o.totalCost||0}　预计利润：${o.totalProfit||0}<div class="progress"><div class="bar" style="width:${o.readyRate||0}%"></div></div>${mat}　到货率：${o.readyRate||0}%</div>`}
+function orderCard(o){const mat=o.materialReady?"物料已齐套":`未下单${o.materialNotOrdered||0}项　已下单${o.materialOrdered||0}项`;return`<div class="order-list-item" onclick="openOrder('${esc(o.id)}')">
+  <div class="item-head"><div class="order-list-id">${orderDisplayId(o)}</div>${orderStatusTag(o)}</div>
+  <div class="order-list-main">${esc(o.code)} ${esc(o.productName||o.product_name||"")} · ${o.totalQty||0}件</div>
+  <div class="order-list-money">成本：${o.totalCost||0}　预计利润：${o.totalProfit||0}　毛利率：${o.margin||0}%</div>
+  <div class="progress"><div class="bar" style="width:${o.readyRate||0}%"></div></div>
+  <div class="order-list-bottom"><span>${mat}</span><span>到货率：${o.readyRate||0}%</span></div>
+</div>`}
 function openOrder(id){
   const o=data.orders.find(x=>x.id===id);if(!o)return;
   const qtyRows=Object.entries(o.colorQty||{}).map(([color,map])=>`<tr><td>${esc(color)}</td>${Object.keys(map).map(s=>`<td>${esc(s)}:${n(map[s])}</td>`).join("")}</tr>`).join("");

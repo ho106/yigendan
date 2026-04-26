@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0">
-<title>八方来财补货版 V1.25</title>
+<title>八方来财补货版 V1.26</title>
 <style>
 :root{--blue:#2f6df6;--green:#18a058;--orange:#ff7a1a;--red:#e5484d;--bg:#f5f6fa;--card:#fff;--text:#1f2937;--muted:#7b8494;--line:#e9edf5}
 *{box-sizing:border-box}
@@ -388,11 +388,18 @@ hr{border:0;border-top:1px solid var(--line);margin:12px 0}
 .import-ok{color:#159957;font-weight:900}
 .import-bad{color:#e5484d;font-weight:900}
 
+
+/* V1.26：产品列表支持修改 */
+.edit-hint{background:#eef4ff;color:#2563eb;border:1px solid #d5e4ff;border-radius:12px;padding:9px 10px;font-weight:900;margin:0 0 12px}
+.product-actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}
+.product-actions button{margin:0}
+.product-editing #pCode{background:#f3f4f6;color:#6b7280}
+
 </style>
 </head>
 <body>
 <div class="app">
-  <div class="header">八方来财补货版 V1.25</div>
+  <div class="header">八方来财补货版 V1.26</div>
 
   <section id="home" class="page active">
     <div class="grid2">
@@ -415,6 +422,7 @@ hr{border:0;border-top:1px solid var(--line);margin:12px 0}
   <section id="product" class="page">
     <div class="card">
       <div class="title">产品模板</div>
+      <div id="productEditHint" class="edit-hint" style="display:none"></div>
       <div class="product-basic-row">
         <div><label>货号</label><input id="pCode" placeholder="例如 26202"></div>
         <div><label>品名</label><input id="pName" placeholder="例如 女童连衣裙"></div>
@@ -437,8 +445,9 @@ hr{border:0;border-top:1px solid var(--line);margin:12px 0}
         <button type="button" onclick="openSizeLibrary()">选择尺码</button>
       </div>
 
-      <button onclick="addProduct()">保存产品模板</button>
-      <div class="sub">首次录入后，以后选择货号会自动带出颜色、尺码、售价、BOM和成本。</div>
+      <button id="productSaveBtn" onclick="addProduct()">保存产品模板</button>
+      <button id="productCancelEditBtn" class="btn-gray" style="display:none" onclick="cancelProductEdit()">取消修改</button>
+      <div class="sub">首次录入后，以后选择货号会自动带出颜色、尺码、售价、BOM和成本。修改产品时，货号会锁定，避免影响已有生产单和BOM。</div>
     </div>
     <div class="card"><div class="title">产品列表</div><div id="productList"></div></div>
   </section>
@@ -709,6 +718,7 @@ let tempColors=[];
 let draftColors=[];
 let draftSizes=[];
 let draftSizeGroup="";
+let editingProductCode="";
 
 function removeTempSize(i){tempSizes.splice(i,1);renderTempSizes()}
 function removeTempColor(i){tempColors.splice(i,1);renderTempColors()}
@@ -854,21 +864,89 @@ function confirmSizeLibrary(){
   showPage("product");
 }
 
+function resetProductForm(){
+  editingProductCode="";
+  tempSizes=[];
+  tempColors=[];
+  if($("pCode")){$("pCode").value="";$("pCode").disabled=false}
+  if($("pName"))$("pName").value="";
+  if($("pSalePrice"))$("pSalePrice").value="";
+  if($("productSaveBtn"))$("productSaveBtn").innerText="保存产品模板";
+  if($("productCancelEditBtn"))$("productCancelEditBtn").style.display="none";
+  if($("productEditHint")){$("productEditHint").style.display="none";$("productEditHint").innerHTML=""}
+  document.body.classList.remove("product-editing");
+  renderTempSizes();
+  renderTempColors();
+}
+function cancelProductEdit(){
+  resetProductForm();
+  alert("已取消修改");
+}
+function editProduct(code){
+  const p=getProduct(code);
+  if(!p)return alert("没有找到这个产品");
+  editingProductCode=code;
+  $("pCode").value=p.code;
+  $("pCode").disabled=true;
+  $("pName").value=p.name||"";
+  $("pSalePrice").value=p.salePrice||"";
+  tempColors=(p.colors||[]).slice();
+  tempSizes=(p.sizes||[]).slice();
+  if($("productSaveBtn"))$("productSaveBtn").innerText="保存修改";
+  if($("productCancelEditBtn"))$("productCancelEditBtn").style.display="inline-block";
+  if($("productEditHint")){
+    $("productEditHint").style.display="block";
+    $("productEditHint").innerHTML=`正在修改：${esc(productLabel(p))}`;
+  }
+  document.body.classList.add("product-editing");
+  renderTempColors();
+  renderTempSizes();
+  window.scrollTo(0,0);
+}
 function addProduct(){
   const code=$("pCode").value.trim(),name=$("pName").value.trim();
   const sizes=normalizeSizes(tempSizes);
   const colors=tempColors.map(x=>x.trim()).filter(Boolean);
   if(!code||!name||!colors.length||!sizes.length)return alert("请填写货号、品名，并选择颜色和尺码");
-  if(data.products.some(p=>p.code===code))return alert("货号已存在");
   colors.forEach(c=>{if(c&&!data.colorLibrary.includes(c))data.colorLibrary.push(c)});
   const sizeGroup=sizes.join("-"); if(sizeGroup&&!data.sizeLibrary.includes(sizeGroup))data.sizeLibrary.push(sizeGroup);
+
+  if(editingProductCode){
+    const p=getProduct(editingProductCode);
+    if(!p)return alert("修改失败，未找到原产品");
+    p.name=name;
+    p.sizes=sizes;
+    p.colors=colors;
+    p.salePrice=n($("pSalePrice").value);
+    p.otherCost=0;
+    data.orders.forEach(o=>{if(o.code===editingProductCode)o.productName=name});
+    save();
+    resetProductForm();
+    renderAll();
+    alert("产品资料已修改");
+    return;
+  }
+
+  if(data.products.some(p=>p.code===code))return alert("货号已存在");
   data.products.push({id:uid("P"),code,name,sizes,colors,salePrice:n($("pSalePrice").value),otherCost:0});
-  tempSizes=[];tempColors=[];
-  $("pCode").value=$("pName").value=$("pSalePrice").value="";
-  save();renderAll();alert("产品已保存");
+  save();
+  resetProductForm();
+  renderAll();
+  alert("产品已保存");
 }
-function renderProducts(){ $("productList").innerHTML=data.products.map(p=>`<div class="item"><div class="item-head"><b>${esc(p.code)}</b><span class="tag gray">${esc(p.name)}</span></div>颜色：${p.colors.map(esc).join("、")}<br>尺码：${p.sizes.map(esc).join("-")}<br>售价：${p.salePrice||0}<br><button class="btn-small btn-red" onclick="deleteProduct('${esc(p.code)}')">删除</button></div>`).join("")||`<div class="empty">暂无产品</div>`}
-function deleteProduct(code){if(data.orders.some(o=>o.code===code))return alert("已有生产单，不能删除");if(!confirm("确定删除产品和该货号BOM？"))return;data.products=data.products.filter(p=>p.code!==code);data.boms=data.boms.filter(b=>b.code!==code);save();renderAll()}
+function renderProducts(){
+  $("productList").innerHTML=data.products.map(p=>`<div class="item">
+    <div class="item-head"><b>${esc(p.code)}</b><span class="tag gray">${esc(p.name)}</span></div>
+    颜色：${p.colors.map(esc).join("、")}<br>
+    尺码：${p.sizes.map(esc).join("-")}<br>
+    售价：${p.salePrice||0}
+    <div class="product-actions">
+      <button class="btn-small btn-red" onclick="deleteProduct('${esc(p.code)}')">删除</button>
+      <button class="btn-small btn-gray" onclick="editProduct('${esc(p.code)}')">修改</button>
+    </div>
+  </div>`).join("")||`<div class="empty">暂无产品</div>`;
+}
+function deleteProduct(code){if(data.orders.some(o=>o.code===code))return alert("已有生产单，不能删除");if(!confirm("确定删除产品和该货号BOM？"))return;data.products=data.products.filter(p=>p.code!==code);data.boms=data.boms.filter(b=>b.code!==code);if(editingProductCode===code)resetProductForm();save();renderAll()}
 
 
 function productLabel(p){return p ? `${p.code} - ${p.name}` : ""}

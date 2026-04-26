@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0">
-<title>衣跟单 · 轻量补货版 V1.15</title>
+<title>衣跟单 · 轻量补货版 V1.17</title>
 <style>
 :root{--blue:#2f6df6;--green:#18a058;--orange:#ff7a1a;--red:#e5484d;--bg:#f5f6fa;--card:#fff;--text:#1f2937;--muted:#7b8494;--line:#e9edf5}
 *{box-sizing:border-box}
@@ -168,11 +168,35 @@ hr{border:0;border-top:1px solid var(--line);margin:12px 0}
   .size-grid-item:nth-last-child(-n+3){border-bottom:0}
 }
 
+
+/* V1.17：BOM五列一屏显示，减少左右滑动 */
+.bom-table-wrap{overflow:visible!important}
+.bom-edit-table{width:100%!important;min-width:0!important;table-layout:fixed!important;font-size:12px!important}
+.bom-edit-table th{padding:6px 3px!important;text-align:center!important}
+.bom-edit-table td{padding:4px 3px!important}
+.bom-edit-table input{width:100%!important;min-width:0!important;height:36px!important;padding:6px 5px!important;font-size:13px!important;border-radius:9px!important}
+.bom-name-cell{width:28%!important}
+.bom-usage-cell{width:14%!important}
+.bom-price-cell{width:14%!important}
+.bom-supplier-cell{width:22%!important}
+.bom-remark-cell{width:22%!important}
+.bom-name-cell input,.bom-usage-cell input,.bom-price-cell input,.bom-supplier-cell input,.bom-remark-cell input{width:100%!important}
+.bom-add-row button{height:38px;font-size:14px}
+@media(max-width:390px){
+  .bom-edit-table{font-size:11px!important}
+  .bom-edit-table input{font-size:12px!important;padding:5px 4px!important}
+  .bom-name-cell{width:27%!important}
+  .bom-usage-cell{width:13%!important}
+  .bom-price-cell{width:13%!important}
+  .bom-supplier-cell{width:22%!important}
+  .bom-remark-cell{width:25%!important}
+}
+
 </style>
 </head>
 <body>
 <div class="app">
-  <div class="header">衣跟单 · 轻量补货版 V1.15</div>
+  <div class="header">衣跟单 · 轻量补货版 V1.17</div>
 
   <section id="home" class="page active">
     <div class="grid2">
@@ -638,7 +662,7 @@ function initProductSelector(prefix){
   if(!getProduct(code) && data.products[0]) code=data.products[0].code;
   hidden.value=code||"";
   const p=getProduct(code);
-  if(prefix==="count"){
+  if(["count","bom"].includes(prefix)){
     search.value="";
     search.placeholder=p?`已选：${productLabel(p)}，输入货号搜索`:"输入货号搜索";
   }else if(p && (!search.value || !productSearchMatches(search.value).some(x=>x.code===code))){
@@ -662,7 +686,7 @@ function selectProduct(prefix,code){
   if(!hidden||!p)return;
   hidden.value=code;
   if(search){
-    if(prefix==="count"){
+    if(["count","bom"].includes(prefix)){
       search.value="";
       search.placeholder=`已选：${productLabel(p)}，输入货号搜索`;
     }else{
@@ -681,7 +705,7 @@ function clearProductSearch(prefix){
   const search=$(prefix+"ProductSearch"), box=$(prefix+"ProductResults");
   if(search){
     search.value="";
-    if(prefix==="count") search.placeholder="输入货号搜索";
+    if(["count","bom"].includes(prefix)) search.placeholder="输入货号搜索";
     search.focus();
   }
   if(box){box.style.display="none";box.innerHTML="";}

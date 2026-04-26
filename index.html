@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0">
-<title>八方来财补货版 V1.31</title>
+<title>八方来财补货版 V1.33</title>
 <style>
 :root{--blue:#2f6df6;--green:#18a058;--orange:#ff7a1a;--red:#e5484d;--bg:#f5f6fa;--card:#fff;--text:#1f2937;--muted:#7b8494;--line:#e9edf5}
 *{box-sizing:border-box}
@@ -562,7 +562,7 @@ hr{border:0;border-top:1px solid var(--line);margin:12px 0}
 </head>
 <body>
 <div class="app">
-  <div class="header">八方来财补货版 V1.31</div>
+  <div class="header">八方来财补货版 V1.33</div>
 
   <section id="home" class="page active">
     <div class="grid2">
@@ -846,21 +846,127 @@ function setFinishedQty(code,color,size,qty){let r=getFinished(code,color);if(!r
 function addFinishedQty(code,color,size,qty){setFinishedQty(code,color,size,getFinishedQty(code,color,size)+n(qty))}
 function isOpenStatus(s){return !["已入库","已取消"].includes(s)}
 function getTransitQty(code,color,size){return data.orders.filter(o=>o.code===code&&isOpenStatus(o.status)).reduce((sum,o)=>sum+n((((o.colorQty||{})[color]||{})[size])),0)}
-function snapshotBoms(code){return getBoms(code).map(b=>({...b,usage:n(b.usage),price:n(b.price)}))}
+function normalizeBomText(v){return String(v||"").trim()}
+function bomRemarkOf(b){return normalizeBomText(b.remark||b.spec||"")}
+function bomDedupKey(b){
+  const name=normalizeBomText(b.name);
+  if(!name)return "";
+  if(bomIsFixedName(name))return "FIXED||"+name;
+  return "CUSTOM||"+name+"||"+bomRemarkOf(b)+"||"+normalizeBomText(b.supplier);
+}
+function bomScore(b){
+  return (normalizeBomText(b.name)?5:0)
+    +(n(b.usage)>0?4:0)
+    +(n(b.price)>0?4:0)
+    +(normalizeBomText(b.supplier)?2:0)
+    +(bomRemarkOf(b)?2:0)
+    +(normalizeBomText(b.id)?1:0);
+}
+function mergeBetterBom(oldBom,newBom){
+  const keepOldId=oldBom&&oldBom.id;
+  const better=bomScore(newBom)>=bomScore(oldBom)?newBom:oldBom;
+  return {
+    ...better,
+    id:keepOldId||better.id||uid("B"),
+    code:better.code||oldBom.code,
+    category:better.category||"",
+    spec:better.spec||"",
+    unit:better.unit||"",
+    remark:better.remark||better.spec||""
+  };
+}
+function sanitizeBomRows(rows,code){
+  const usedIds=new Set();
+  const result=[];
+  const indexByKey=new Map();
+
+  (rows||[]).forEach(raw=>{
+    if(!raw)return;
+    const name=normalizeBomText(raw.name);
+    if(!name)return;
+    let b={
+      ...raw,
+      id:normalizeBomText(raw.id),
+      code:code||raw.code,
+      category:raw.category||"",
+      spec:raw.spec||"",
+      unit:raw.unit||"",
+      name,
+      usage:n(raw.usage),
+      price:n(raw.price),
+      supplier:normalizeBomText(raw.supplier),
+      remark:bomRemarkOf(raw)
+    };
+
+    if(!b.id || usedIds.has(b.id)){
+      b.id=uid("B");
+    }
+    usedIds.add(b.id);
+
+    const key=bomDedupKey(b);
+    if(!key)return;
+
+    if(indexByKey.has(key)){
+      const idx=indexByKey.get(key);
+      result[idx]=mergeBetterBom(result[idx],b);
+    }else{
+      indexByKey.set(key,result.length);
+      result.push(b);
+    }
+  });
+
+  return result;
+}
+function ensureBomIntegrity(code){
+  const old=data.boms||[];
+  if(code){
+    const cleaned=sanitizeBomRows(old.filter(b=>b.code===code),code);
+    data.boms=old.filter(b=>b.code!==code).concat(cleaned);
+    return cleaned;
+  }
+
+  const byCode={};
+  old.forEach(b=>{
+    const c=b.code||"";
+    if(!byCode[c])byCode[c]=[];
+    byCode[c].push(b);
+  });
+
+  const cleaned=[];
+  Object.keys(byCode).forEach(c=>{
+    cleaned.push(...sanitizeBomRows(byCode[c],c));
+  });
+  data.boms=cleaned;
+  return cleaned;
+}
+function snapshotBoms(code){
+  const rows=ensureBomIntegrity(code);
+  return rows.map(b=>({...b,usage:n(b.usage),price:n(b.price),remark:bomRemarkOf(b)}));
+}
 function calcStatus(need,stock,onway){need=n(need);stock=n(stock);onway=n(onway);if(stock>=need)return{need:0,status:"齐套",cls:"ok"};if(stock+onway>=need)return{need:0,status:"部分在途",cls:"warn"};return{need:+(need-stock-onway).toFixed(2),status:"待采购",cls:"bad"}}
 function matKeyFromBom(b){return (b.id||"")+"||"+(b.name||"")+"||"+(b.remark||b.spec||"")}
 function matStatusText(status){return status||"未下单"}
 function matStatusClass(status){if(status==="已到货")return"ok";if(status==="已下单")return"warn";return"bad"}
+function getOrderTotalPieces(order){
+  const fromColorQty=Object.values(order.colorQty||{}).reduce((s,map)=>s+Object.values(map||{}).reduce((a,b)=>a+n(b),0),0);
+  return fromColorQty>0 ? fromColorQty : n(order.totalQty);
+}
+
 function calcOrder(order){
   const p=getProduct(order.code)||{salePrice:0,otherCost:0};
   order.materialStatus=order.materialStatus||{};
-  const qty=Object.values(order.colorQty||{}).reduce((s,map)=>s+Object.values(map||{}).reduce((a,b)=>a+n(b),0),0);
+
+  // V1.32 修正：物料“总需”必须按整张生产单总件数计算
+  // 公式：总需 = 单耗 × 下单总件数
+  const qty=getOrderTotalPieces(order);
+
   const boms=order.bomSnapshot||snapshotBoms(order.code);
   const materials=boms.map(b=>{
     const key=matKeyFromBom(b);
     const status=matStatusText(order.materialStatus[key]);
     const total=+(n(b.usage)*qty).toFixed(2);
-    return{...b,key,status,cls:matStatusClass(status),totalNeed:total,needOrder:status==="已到货"?0:total,cost:+(total*n(b.price)).toFixed(2),unitPrice:+(n(b.usage)*n(b.price)).toFixed(2)}
+    const cost=+(total*n(b.price)).toFixed(2);
+    return{...b,key,status,cls:matStatusClass(status),totalNeed:total,needOrder:status==="已到货"?0:total,cost,unitPrice:+(n(b.usage)*n(b.price)).toFixed(2)}
   });
   const unitCost=+(materials.reduce((s,m)=>s+n(m.unitPrice),0)).toFixed(2);
   const totalCost=+(unitCost*qty).toFixed(2);
@@ -894,7 +1000,12 @@ function syncOrderLatestBom(order){
       (x.id && b.id && String(x.id)===String(b.id)) ||
       (
         String(x.name||"")===String(b.name||"") &&
-        String(x.remark||x.spec||"")===String(b.remark||b.spec||"")
+        String(x.remark||x.spec||"")===String(b.remark||b.spec||"") &&
+        String(x.supplier||"")===String(b.supplier||"")
+      ) ||
+      (
+        bomIsFixedName(b.name) &&
+        String(x.name||"")===String(b.name||"")
       )
     );
 
@@ -920,6 +1031,7 @@ function syncOpenOrdersLatestBom(code){
 }
 
 function recalcOrders(){
+  ensureBomIntegrity();
   syncOpenOrdersLatestBom();
   data.orders=data.orders.map(calcOrder);
   save();
@@ -1700,13 +1812,20 @@ function saveOrderMaterialEdits(orderId){
     if(idx>=0){
       data.boms[idx]={...data.boms[idx],...b};
     }else{
-      const sameIdx=data.boms.findIndex(x=>x.code===b.code && x.name===b.name && (x.remark||"")===(b.remark||""));
+      const sameIdx=data.boms.findIndex(x=>
+        x.code===b.code &&
+        (
+          (bomIsFixedName(b.name) && x.name===b.name) ||
+          (x.name===b.name && (x.remark||"")===(b.remark||"") && (x.supplier||"")===(b.supplier||""))
+        )
+      );
       if(sameIdx>=0)data.boms[sameIdx]={...data.boms[sameIdx],...b};
       else data.boms.push(b);
     }
     if(b.name&&!data.materialNames.includes(b.name))data.materialNames.push(b.name);
   });
 
+  ensureBomIntegrity(o.code);
   const synced=syncOpenOrdersLatestBom(o.code);
   data.orders=data.orders.map(calcOrder);
   save();
@@ -1752,7 +1871,7 @@ function blankBomRowHtml(){
 }
 
 function getBomEditorRows(code){
-  const saved=data.boms.filter(b=>b.code===code);
+  const saved=ensureBomIntegrity(code);
   const custom=saved.filter(b=>!bomIsFixedName(b.name));
   const rows=[];
   custom.forEach(b=>rows.push({...b,fixed:false}));
@@ -1845,7 +1964,8 @@ function readBomEditorRows(){
       remark
     });
   }
-  return rows;
+
+  return sanitizeBomRows(rows,code);
 }
 
 function saveBomEditor(){
@@ -2136,12 +2256,20 @@ function mergeUnique(arr,items){
   items.forEach(x=>{if(x&&!arr.includes(x))arr.push(x)});
 }
 function upsertImportedBom(bom){
-  const idx=data.boms.findIndex(b=>b.code===bom.code && b.name===bom.name && (b.remark||"")===(bom.remark||""));
+  const clean={...bom,id:bom.id||uid("B"),remark:bom.remark||bom.spec||""};
+  const idx=data.boms.findIndex(b=>
+    b.code===clean.code &&
+    (
+      (bomIsFixedName(clean.name) && b.name===clean.name) ||
+      (b.name===clean.name && (b.remark||"")===(clean.remark||"") && (b.supplier||"")===(clean.supplier||""))
+    )
+  );
   if(idx>=0){
-    data.boms[idx]={...data.boms[idx],usage:bom.usage,price:bom.price,supplier:bom.supplier,remark:bom.remark};
+    data.boms[idx]={...data.boms[idx],...clean,usage:clean.usage,price:clean.price,supplier:clean.supplier,remark:clean.remark};
   }else{
-    data.boms.push(bom);
+    data.boms.push(clean);
   }
+  ensureBomIntegrity(clean.code);
 }
 function makeImportOrderId(code,date){
   const d=(date||today()).replaceAll("-","");

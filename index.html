@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0">
-<title>衣跟单 · 轻量补货版 V1.12</title>
+<title>衣跟单 · 轻量补货版 V1.13</title>
 <style>
 :root{--blue:#2f6df6;--green:#18a058;--orange:#ff7a1a;--red:#e5484d;--bg:#f5f6fa;--card:#fff;--text:#1f2937;--muted:#7b8494;--line:#e9edf5}
 *{box-sizing:border-box}
@@ -152,11 +152,27 @@ hr{border:0;border-top:1px solid var(--line);margin:12px 0}
 .swipe-wrap.swiped .library-row{transform:translateX(-84px)}
 .swipe-delete{position:absolute;right:0;top:0;bottom:0;width:84px;border:0;border-radius:0;background:#e5484d;color:#fff;font-weight:900;margin:0;z-index:1}
 
+
+.size-grid-box{border:1px solid #dbe1ea;border-radius:14px;overflow:hidden;background:#fff;margin:6px 0 12px}
+.size-grid{display:grid;grid-template-columns:repeat(4,1fr)}
+.size-grid-item{border-right:1px solid #e1e6ef;border-bottom:1px solid #e1e6ef;padding:8px 6px;text-align:center;min-width:0}
+.size-grid-item:nth-child(4n){border-right:0}
+.size-grid-item:nth-last-child(-n+4){border-bottom:0}
+.size-grid-size{font-size:16px;font-weight:900;margin-bottom:7px;color:#111827}
+.size-grid-item input{height:42px;margin:0;text-align:center;border-radius:12px;padding:6px;font-size:16px}
+@media(max-width:390px){
+  .size-grid{grid-template-columns:repeat(3,1fr)}
+  .size-grid-item:nth-child(4n){border-right:1px solid #e1e6ef}
+  .size-grid-item:nth-child(3n){border-right:0}
+  .size-grid-item:nth-last-child(-n+4){border-bottom:1px solid #e1e6ef}
+  .size-grid-item:nth-last-child(-n+3){border-bottom:0}
+}
+
 </style>
 </head>
 <body>
 <div class="app">
-  <div class="header">衣跟单 · 轻量补货版 V1.12</div>
+  <div class="header">衣跟单 · 轻量补货版 V1.13</div>
 
   <section id="home" class="page active">
     <div class="grid2">
@@ -683,14 +699,17 @@ function renderCountForm(){
   if(!p){$("countInputs").innerHTML="";return}
   const color=renderColorOptions("count");
   if(!color){$("countInputs").innerHTML=`<div class="empty">请选择或输入颜色</div>`;return}
-  const header=p.sizes.map(size=>`<th>${esc(size)}</th>`).join("");
-  const inputs=p.sizes.map(size=>`<td><input class="countQty" data-size="${esc(size)}" type="number" value="${getFinishedQty(p.code,color,size)}" oninput="updateCountTotal()"></td>`).join("");
+
+  const items=p.sizes.map(size=>`
+    <div class="size-grid-item">
+      <div class="size-grid-size">${esc(size)}</div>
+      <input class="countQty" data-size="${esc(size)}" type="number" value="${getFinishedQty(p.code,color,size)}" oninput="updateCountTotal()">
+    </div>
+  `).join("");
+
   $("countInputs").innerHTML=`
     <label>库存数量</label>
-    <div class="size-table-box"><table class="size-table">
-      <tr><th>尺码</th>${header}</tr>
-      <tr><th>数量(件)</th>${inputs}</tr>
-    </table></div>
+    <div class="size-grid-box"><div class="size-grid">${items}</div></div>
     <div class="count-total">本颜色合计：<span id="countTotal">0</span> 件</div>
     <div class="count-actions">
       <button class="btn-gray" onclick="copyLastCount()">复制上次库存</button>

@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0">
-<title>衣跟单 · 轻量补货版 V1.21</title>
+<title>衣跟单 · 轻量补货版 V1.22</title>
 <style>
 :root{--blue:#2f6df6;--green:#18a058;--orange:#ff7a1a;--red:#e5484d;--bg:#f5f6fa;--card:#fff;--text:#1f2937;--muted:#7b8494;--line:#e9edf5}
 *{box-sizing:border-box}
@@ -279,11 +279,43 @@ hr{border:0;border-top:1px solid var(--line);margin:12px 0}
   .qty-two-row-table td:first-child{width:68px}
 }
 
+
+/* V1.22：颜色尺码数量模块紧凑一屏版 */
+.qty-two-row-wrap{overflow:visible!important;width:100%!important}
+.qty-two-row-table{
+  width:100%!important;
+  min-width:0!important;
+  table-layout:fixed!important;
+  font-size:12px!important;
+  border-collapse:collapse!important;
+}
+.qty-two-row-table td{
+  padding:6px 2px!important;
+  white-space:nowrap!important;
+  overflow:hidden!important;
+  text-overflow:clip!important;
+}
+.qty-two-row-table td:first-child{
+  width:48px!important;
+  min-width:48px!important;
+}
+.qty-two-row-color{
+  padding:4px 6px!important;
+  font-size:12px!important;
+  border-radius:7px!important;
+}
+@media(max-width:430px){
+  .qty-two-row-table{font-size:11px!important}
+  .qty-two-row-table td{padding:5px 1px!important}
+  .qty-two-row-table td:first-child{width:42px!important;min-width:42px!important}
+  .qty-two-row-color{padding:3px 5px!important;font-size:11px!important}
+}
+
 </style>
 </head>
 <body>
 <div class="app">
-  <div class="header">衣跟单 · 轻量补货版 V1.21</div>
+  <div class="header">衣跟单 · 轻量补货版 V1.22</div>
 
   <section id="home" class="page active">
     <div class="grid2">
@@ -1128,7 +1160,7 @@ function openOrder(id,keepScroll=false){
     const qtyCells=sizes.map(s=>`<td>${n(map[s])}</td>`).join("");
     return `<div class="qty-two-row-wrap"><table class="qty-two-row-table">
       <tr><td><span class="qty-two-row-color">${esc(color)}</span></td>${sizeCells}</tr>
-      <tr><td>数量</td>${qtyCells}</tr>
+      <tr><td>数</td>${qtyCells}</tr>
     </table></div>`;
   }).join("");
 

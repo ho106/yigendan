@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0">
-<title>八方来财补货版 V1.40</title>
+<title>八方来财补货版 V1.41</title>
 <style>
 :root{--blue:#2f6df6;--green:#18a058;--orange:#ff7a1a;--red:#e5484d;--bg:#f5f6fa;--card:#fff;--text:#1f2937;--muted:#7b8494;--line:#e9edf5}
 *{box-sizing:border-box}
@@ -910,7 +910,7 @@ hr{border:0;border-top:1px solid var(--line);margin:12px 0}
 </head>
 <body>
 <div class="app">
-  <div class="header">八方来财补货版 V1.40</div>
+  <div class="header">八方来财补货版 V1.41</div>
 
   <section id="home" class="page active">
     <div class="grid2">
@@ -1449,6 +1449,13 @@ function snapshotBoms(code){
 }
 function calcStatus(need,stock,onway){need=n(need);stock=n(stock);onway=n(onway);if(stock>=need)return{need:0,status:"齐套",cls:"ok"};if(stock+onway>=need)return{need:0,status:"部分在途",cls:"warn"};return{need:+(need-stock-onway).toFixed(2),status:"待采购",cls:"bad"}}
 function matKeyFromBom(b){return (b.id||"")+"||"+(b.name||"")+"||"+(b.remark||b.spec||"")}
+function completeMaterialStatusFromBoms(boms){
+  const status={};
+  (boms||[]).forEach(b=>{
+    status[matKeyFromBom(b)]="已到货";
+  });
+  return status;
+}
 function matStatusText(status){return status||"未下单"}
 function matStatusClass(status){if(status==="已到货")return"ok";if(status==="已下单")return"warn";return"bad"}
 function getOrderTotalPieces(order){
@@ -1465,9 +1472,15 @@ function calcOrder(order){
   const qty=getOrderTotalPieces(order);
 
   const boms=order.bomSnapshot||snapshotBoms(order.code);
+  if(order.status==="已入库"){
+    boms.forEach(b=>{
+      const key=matKeyFromBom(b);
+      order.materialStatus[key]="已到货";
+    });
+  }
   const materials=boms.map(b=>{
     const key=matKeyFromBom(b);
-    const status=matStatusText(order.materialStatus[key]);
+    const status=matStatusText(order.status==="已入库" ? "已到货" : order.materialStatus[key]);
     const total=+(n(b.usage)*qty).toFixed(2);
     const cost=+(total*n(b.price)).toFixed(2);
     return{...b,key,status,cls:matStatusClass(status),totalNeed:total,needOrder:status==="已到货"?0:total,cost,unitPrice:+(n(b.usage)*n(b.price)).toFixed(2)}
@@ -2256,7 +2269,9 @@ function createOrder(){const p=getProduct($("orderProduct").value),color=$("orde
 function renderOrders(){const f=$("orderFilter").value;let list=data.orders.slice().reverse();if(f==="open")list=list.filter(o=>isOpenStatus(o.status));else if(f!=="all")list=list.filter(o=>o.status===f);if(orderReminderMode){const ids=new Set(getReminderOrderList(orderReminderMode).map(o=>o.id));list=list.filter(o=>ids.has(o.id));}const bar=$("orderReminderBar"); if(bar){ if(orderReminderMode){ bar.className='order-reminder-bar show'; bar.innerHTML=`<span>当前查看：${esc(getReminderOrderTitle(orderReminderMode))}（${list.length}张）</span><button class="btn-small btn-gray" onclick="clearOrderReminder()">清除</button>`; } else { bar.className='order-reminder-bar'; bar.innerHTML=''; } } $("orderList").innerHTML=list.map(orderCard).join("")||`<div class="empty">暂无生产单</div>`}
 function orderStatusTag(o){if(o.status==="已入库")return`<span class="tag ok">已入库</span>`;if(o.status==="已取消")return`<span class="tag gray">已取消</span>`;return`<span class="tag ${o.warningCount?'warn':'ok'}">${esc(o.status||"待生产")}</span>`}
 function orderCard(o){
-  const mat=o.materialReady?"物料已齐套":`未下单${o.materialNotOrdered||0}项　已下单${o.materialOrdered||0}项`;
+  const mat=o.status==="已入库"
+    ? `未下单0项　已下单${(o.materials||[]).length}项`
+    : (o.materialReady?"物料已齐套":`未下单${o.materialNotOrdered||0}项　已下单${o.materialOrdered||0}项`);
   const due=dueInfo(o);
   const note=o.note?`<div class="note-preview">备注：${esc(o.note).slice(0,60)}</div>`:"";
   const p=getProduct(o.code)||{};
@@ -2323,7 +2338,9 @@ function openOrder(id,keepScroll=false){
     </tr>`;
   }).join("");
 
-  const materialSummary=o.materialReady?`<span class="tag ok">物料已齐套</span>`:`<span class="tag warn">未下单${o.materialNotOrdered||0}项 / 已下单${o.materialOrdered||0}项</span>`;
+  const materialSummary=o.status==="已入库"
+    ? `<span class="tag ok">未下单0项 / 已下单${(o.materials||[]).length}项 / 到货率100%</span>`
+    : (o.materialReady?`<span class="tag ok">物料已齐套</span>`:`<span class="tag warn">未下单${o.materialNotOrdered||0}项 / 已下单${o.materialOrdered||0}项</span>`);
   const due=dueInfo(o);
 
   $("detailBox").innerHTML=`<div class="card detail-summary">
@@ -3045,7 +3062,8 @@ function confirmOrderImport(){
     if(createOrders && x.totalQty>0){
       const id=makeImportOrderId(x.code,x.orderDate);
       if(!data.orders.some(o=>o.id===id)){
-        const order={id,code:x.code,productName:p.name,colorQty:x.colorQty,status:"已入库",created:x.orderDate||today(),dueDate:x.dueDate||"",bomSnapshot:snapshotBoms(x.code),materialStatus:{},note:"旧指令单批量导入"};
+        const bomSnapshot=snapshotBoms(x.code);
+        const order={id,code:x.code,productName:p.name,colorQty:x.colorQty,status:"已入库",created:x.orderDate||today(),dueDate:x.dueDate||"",bomSnapshot,materialStatus:completeMaterialStatusFromBoms(bomSnapshot),note:"旧指令单批量导入"};
         data.orders.push(calcOrder(order));
         orderCount++;
       }

@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0">
-<title>八方来财补货版 V1.33</title>
+<title>八方来财补货版 V1.35</title>
 <style>
 :root{--blue:#2f6df6;--green:#18a058;--orange:#ff7a1a;--red:#e5484d;--bg:#f5f6fa;--card:#fff;--text:#1f2937;--muted:#7b8494;--line:#e9edf5}
 *{box-sizing:border-box}
@@ -558,11 +558,58 @@ hr{border:0;border-top:1px solid var(--line);margin:12px 0}
   .material-compact-table.v30 .tag{font-size:8px!important;padding:3px 3px!important}
 }
 
+
+/* V1.34：智能待办 + 超期提醒 + 生产单备注 */
+.todo-smart-item{background:#fafbff;border:1px solid var(--line);border-radius:14px;padding:11px 12px;margin:9px 0;line-height:1.45}
+.todo-smart-item .todo-title{font-weight:900;font-size:15px;margin-bottom:4px}
+.todo-smart-item .todo-desc{font-size:13px;color:#6b7280}
+.todo-overdue{border-color:#ffd1d1;background:#fff7f7}
+.todo-warning{border-color:#ffe2aa;background:#fffaf0}
+.todo-ok{border-color:#ccefdc;background:#f6fff9}
+.due-line{font-size:13px;margin-top:6px;color:#6b7280}
+.due-overdue{color:#e5484d!important;font-weight:900}
+.due-today{color:#ff7a1a!important;font-weight:900}
+.due-normal{color:#18a058!important;font-weight:900}
+.order-note-card textarea{min-height:72px;margin-bottom:8px}
+.order-note-actions{display:flex;gap:8px;align-items:center;justify-content:space-between}
+.order-note-actions button{margin:0}
+.note-preview{font-size:13px;color:#6b7280;margin-top:5px;line-height:1.4}
+
+
+/* V1.35：提醒设置开关 */
+.setting-list{display:flex;flex-direction:column;gap:8px;margin-top:8px}
+.setting-row{
+  display:flex!important;
+  align-items:center;
+  justify-content:space-between;
+  gap:12px;
+  border:1px solid var(--line);
+  background:#fafbff;
+  border-radius:13px;
+  padding:11px 12px;
+  margin:0!important;
+  font-weight:900;
+  font-size:14px;
+}
+.setting-row input[type="checkbox"]{
+  width:22px!important;
+  height:22px!important;
+  margin:0!important;
+  flex:0 0 auto;
+}
+.setting-row select{
+  width:108px;
+  height:38px;
+  margin:0;
+  border-radius:10px;
+  font-weight:900;
+}
+
 </style>
 </head>
 <body>
 <div class="app">
-  <div class="header">八方来财补货版 V1.33</div>
+  <div class="header">八方来财补货版 V1.35</div>
 
   <section id="home" class="page active">
     <div class="grid2">
@@ -766,6 +813,30 @@ hr{border:0;border-top:1px solid var(--line);margin:12px 0}
     </div>
 
     <div class="card">
+      <div class="title">提醒设置</div>
+      <div class="setting-list">
+        <label class="setting-row"><span>超期生产单提醒</span><input id="setOverdue" type="checkbox" onchange="saveReminderSettings()"></label>
+        <label class="setting-row"><span>临近交货提醒</span><input id="setDueSoon" type="checkbox" onchange="saveReminderSettings()"></label>
+        <label class="setting-row"><span>待入库提醒</span><input id="setWaitIn" type="checkbox" onchange="saveReminderSettings()"></label>
+        <label class="setting-row"><span>未下单物料提醒</span><input id="setNotOrdered" type="checkbox" onchange="saveReminderSettings()"></label>
+        <label class="setting-row"><span>已下单未到货提醒</span><input id="setOrderedNotArrived" type="checkbox" onchange="saveReminderSettings()"></label>
+        <label class="setting-row"><span>未盘点提醒</span><input id="setStaleCount" type="checkbox" onchange="saveReminderSettings()"></label>
+        <div class="setting-row">
+          <span>超过几天未盘点提醒</span>
+          <select id="setStaleDays" onchange="saveReminderSettings()">
+            <option value="3">3天</option>
+            <option value="5">5天</option>
+            <option value="7">7天</option>
+            <option value="10">10天</option>
+            <option value="15">15天</option>
+            <option value="30">30天</option>
+          </select>
+        </div>
+      </div>
+      <div class="sub">不想看的提醒可以关闭。设置会自动保存。</div>
+    </div>
+
+    <div class="card">
       <div class="title">报表 / 备份</div>
       <button onclick="exportOrdersCSV()">导出生产单明细 CSV</button>
       <button class="btn-green" onclick="exportPurchaseCSV()">导出待处理物料 CSV</button>
@@ -816,7 +887,16 @@ function defaultData(){
   finishedStocks:[],countRecords:[],finishedInRecords:[],orders:[],logs:[],
   colorLibrary:["粉色","蓝色","红色","脚蹼","白雪公主发箍","爱心蝴蝶结发箍"],
   sizeLibrary:["90-100-110-120-130-140","均码","XS-S-M-L-XL-XXL","26-27-28-29-30-31-32-33-34"],
-  materialNames:["面料","里布","外纱","拉链","花边","吊牌","包装袋","工费"]};
+  materialNames:["面料","里布","外纱","拉链","花边","吊牌","包装袋","工费"],
+  reminderSettings:{
+    overdue:true,
+    dueSoon:true,
+    waitIn:true,
+    notOrdered:true,
+    orderedNotArrived:true,
+    staleCount:true,
+    staleDays:7
+  }};
 }
 function loadData(){
   try{let d=JSON.parse(localStorage.getItem(STORAGE_KEY)||"null")||defaultData();
@@ -826,9 +906,11 @@ function loadData(){
     d.colorLibrary=d.colorLibrary||["粉色","蓝色","红色","脚蹼","白雪公主发箍","爱心蝴蝶结发箍"];
     d.sizeLibrary=d.sizeLibrary||["90-100-110-120-130-140","均码","XS-S-M-L-XL-XXL","26-27-28-29-30-31-32-33-34"];
     d.sizeLibrary=[...new Set(d.sizeLibrary.map(g=>formatSizeGroup(g)).filter(Boolean))];
+    d.reminderSettings={overdue:true,dueSoon:true,waitIn:true,notOrdered:true,orderedNotArrived:true,staleCount:true,staleDays:7,...(d.reminderSettings||{})};
+    d.reminderSettings.staleDays=n(d.reminderSettings.staleDays)||7;
     d.products.forEach(p=>{p.sizes=normalizeSizes(p.sizes||[]);p.colors=p.colors||[];p.salePrice=n(p.salePrice);p.otherCost=n(p.otherCost);p.colors.forEach(c=>{if(c&&!d.colorLibrary.includes(c))d.colorLibrary.push(c)});if(p.sizes.length){const g=p.sizes.join("、");if(!d.sizeLibrary.includes(g))d.sizeLibrary.push(g)}});
     d.boms.forEach(b=>{b.remark=b.remark||b.spec||"";b.spec=b.spec||"";b.unit=b.unit||"";b.category=b.category||""});
-    d.orders.forEach(o=>{o.materialStatus=o.materialStatus||{};});
+    d.orders.forEach(o=>{o.materialStatus=o.materialStatus||{};o.note=o.note||"";});
     return d;
   }catch(e){alert("本地数据损坏，已加载演示数据");return defaultData();}
 }
@@ -1620,6 +1702,37 @@ function copySuggestToOrder(){
 }
 function clearOrderQty(){document.querySelectorAll(".orderQty").forEach(i=>i.value="");updateOrderTotals()}
 
+
+function dateOnlyObj(dateStr){
+  if(!dateStr)return null;
+  const d=new Date(String(dateStr).slice(0,10)+"T00:00:00");
+  return Number.isNaN(d.getTime())?null:d;
+}
+function daysBetweenDate(a,b){
+  const da=dateOnlyObj(a), db=dateOnlyObj(b);
+  if(!da||!db)return null;
+  return Math.round((da-db)/(24*60*60*1000));
+}
+function dueInfo(o){
+  if(!o||!o.dueDate||!isOpenStatus(o.status))return {text:"",cls:""};
+  const diff=daysBetweenDate(o.dueDate,today());
+  if(diff===null)return {text:"",cls:""};
+  if(diff<0)return {text:`已超期 ${Math.abs(diff)} 天`,cls:"due-overdue"};
+  if(diff===0)return {text:"今天交货",cls:"due-today"};
+  if(diff<=2)return {text:`${diff} 天后交货`,cls:"due-today"};
+  return {text:`交货日：${o.dueDate}`,cls:"due-normal"};
+}
+function orderLastCountDays(code){
+  const list=(data.countRecords||[]).filter(r=>r.code===code).sort((a,b)=>n(b.ts)-n(a.ts));
+  if(!list.length)return 9999;
+  const ts=list[0].ts;
+  if(!ts)return 9999;
+  return Math.floor((Date.now()-n(ts))/(24*60*60*1000));
+}
+function todoHtml(title,desc,cls=""){
+  return `<div class="todo-smart-item ${cls}"><div class="todo-title">${esc(title)}</div><div class="todo-desc">${esc(desc||"")}</div></div>`;
+}
+
 function makeOrderId(code){
   const d=today().replaceAll("-","");
   const base=d+"-"+code;
@@ -1636,10 +1749,16 @@ function orderDisplayId(o){
 function createOrder(){const p=getProduct($("orderProduct").value),color=$("orderColor").value.trim();if(!p||!color)return alert("请选择货号和颜色");const qtyMap={};document.querySelectorAll(".orderQty").forEach(i=>qtyMap[i.dataset.size]=n(i.value));const total=Object.values(qtyMap).reduce((a,b)=>a+n(b),0);if(total<=0)return alert("请填写下单数量");if(!getBoms(p.code).length)return alert("该货号还没有BOM，请先录入BOM");const order={id:makeOrderId(p.code),code:p.code,productName:p.name,colorQty:{[color]:qtyMap},status:"待生产",created:today(),dueDate:$("orderDue").value||"",bomSnapshot:snapshotBoms(p.code),materialStatus:{},note:""};data.orders.push(calcOrder(order));save();renderAll();alert("生产指令单已生成");showPage("orders")}
 function renderOrders(){const f=$("orderFilter").value;let list=data.orders.slice().reverse();if(f==="open")list=list.filter(o=>isOpenStatus(o.status));else if(f!=="all")list=list.filter(o=>o.status===f);$("orderList").innerHTML=list.map(orderCard).join("")||`<div class="empty">暂无生产单</div>`}
 function orderStatusTag(o){if(o.status==="已入库")return`<span class="tag ok">已入库</span>`;if(o.status==="已取消")return`<span class="tag gray">已取消</span>`;return`<span class="tag ${o.warningCount?'warn':'ok'}">${esc(o.status||"待生产")}</span>`}
-function orderCard(o){const mat=o.materialReady?"物料已齐套":`未下单${o.materialNotOrdered||0}项　已下单${o.materialOrdered||0}项`;return`<div class="order-list-item" onclick="openOrder('${esc(o.id)}')">
+function orderCard(o){
+  const mat=o.materialReady?"物料已齐套":`未下单${o.materialNotOrdered||0}项　已下单${o.materialOrdered||0}项`;
+  const due=dueInfo(o);
+  const note=o.note?`<div class="note-preview">备注：${esc(o.note).slice(0,60)}</div>`:"";
+  return`<div class="order-list-item" onclick="openOrder('${esc(o.id)}')">
   <div class="item-head"><div class="order-list-id">${orderDisplayId(o)}</div>${orderStatusTag(o)}</div>
   <div class="order-list-main">${esc(o.code)} ${esc(o.productName||o.product_name||"")} · ${o.totalQty||0}件</div>
   <div class="order-list-money">成本：${o.totalCost||0}　预计利润：${o.totalProfit||0}　毛利率：${o.margin||0}%</div>
+  ${due.text?`<div class="due-line ${due.cls}">${esc(due.text)}</div>`:""}
+  ${note}
   <div class="progress"><div class="bar" style="width:${o.readyRate||0}%"></div></div>
   <div class="order-list-bottom"><span>${mat}</span><span>到货率：${o.readyRate||0}%</span></div>
 </div>`}
@@ -1693,11 +1812,13 @@ function openOrder(id,keepScroll=false){
   }).join("");
 
   const materialSummary=o.materialReady?`<span class="tag ok">物料已齐套</span>`:`<span class="tag warn">未下单${o.materialNotOrdered||0}项 / 已下单${o.materialOrdered||0}项</span>`;
+  const due=dueInfo(o);
 
   $("detailBox").innerHTML=`<div class="card detail-summary">
     <div class="title">${esc(o.id)} <button class="btn-small btn-gray" onclick="showPage('orders')">返回</button></div>
     <div>${esc(o.code)} - ${esc(o.productName||"")} · ${o.totalQty||0}件　${orderStatusTag(o)}</div>
     <div style="margin-top:6px">${materialSummary}</div>
+    ${due.text?`<div class="due-line ${due.cls}">${esc(due.text)}</div>`:""}
     <div class="detail-money-grid">
       <div>单件成本：<b>${o.unitCost||0}</b></div>
       <div>总成本：<b>${o.totalCost||0}</b></div>
@@ -1712,6 +1833,15 @@ function openOrder(id,keepScroll=false){
       <button class="btn-green" onclick="confirmFinishedIn('${o.id}')">确认成品入库</button>
       <button class="btn-red" onclick="confirmCancelOrder('${o.id}')">取消</button>
       <button class="btn-red" onclick="deleteOrder('${o.id}')">删除</button>
+    </div>
+  </div>
+
+  <div class="card order-note-card">
+    <div class="title">生产单备注</div>
+    <textarea id="orderNoteInput" placeholder="例如：缺面料 / 工厂说周五出 / 胸标未到">${esc(o.note||"")}</textarea>
+    <div class="order-note-actions">
+      <span class="sub">记录异常和跟单进展</span>
+      <button class="btn-small btn-green" onclick="saveOrderNote('${esc(o.id)}')">保存备注</button>
     </div>
   </div>
 
@@ -1742,6 +1872,18 @@ function openOrder(id,keepScroll=false){
 }
 function setOrderStatus(id,status){const o=data.orders.find(x=>x.id===id);if(!o)return;o.status=status;save();renderAll();openOrder(id)}
 function confirmCancelOrder(id){if(confirm("确定取消这张生产单？取消后不能确认入库。"))setOrderStatus(id,"已取消")}
+
+
+function saveOrderNote(orderId){
+  const y=window.scrollY||document.documentElement.scrollTop||0;
+  const o=data.orders.find(x=>x.id===orderId);
+  if(!o)return;
+  o.note=$("orderNoteInput")?$("orderNoteInput").value.trim():"";
+  save();
+  openOrder(orderId,true);
+  setTimeout(()=>window.scrollTo(0,y),0);
+  alert("备注已保存");
+}
 
 function saveOrderQty(orderId){
   const y=window.scrollY||document.documentElement.scrollTop||0;
@@ -2013,7 +2155,64 @@ function renderWarnings(){
   const list=getPurchaseSummary();
   $("purchaseList").innerHTML=list.map(x=>`<div class="item"><div class="item-head"><b>${esc(x.name)}</b><span class="tag ${matStatusClass(x.status)}">${esc(x.status)}</span></div>${esc(x.code)} ${esc(x.productName||"")} · ${esc(x.remark||"")}<br>需求：${x.need}　单价：${x.price}　金额：${x.amount}<br>供应商：${esc(x.supplier||"")}</div>`).join("")||`<div class="empty">暂无待处理物料</div>`;
 }
-function renderHome(){const open=data.orders.filter(o=>isOpenStatus(o.status));$("homeActiveCount").innerText=open.length;$("homeWarnCount").innerText=getPurchaseSummary().length;$("homeOrders").innerHTML=data.orders.slice().reverse().slice(0,5).map(orderCard).join("")||`<div class="empty">暂无生产单</div>`;const todos=[];open.filter(o=>o.status==="待入库").forEach(o=>todos.push(`生产单 ${o.id} 待确认成品入库`));const pending=getPurchaseSummary().length;if(pending)todos.push(`有 ${pending} 项物料未到货/未下单`);$("todoList").innerHTML=todos.map(t=>`<div class="item">${esc(t)}</div>`).join("")||`<div class="empty">暂无待处理事项</div>`}
+
+function getReminderSettings(){
+  data.reminderSettings=data.reminderSettings||{};
+  data.reminderSettings={overdue:true,dueSoon:true,waitIn:true,notOrdered:true,orderedNotArrived:true,staleCount:true,staleDays:7,...data.reminderSettings};
+  data.reminderSettings.staleDays=n(data.reminderSettings.staleDays)||7;
+  return data.reminderSettings;
+}
+function renderReminderSettings(){
+  const s=getReminderSettings();
+  if($("setOverdue"))$("setOverdue").checked=!!s.overdue;
+  if($("setDueSoon"))$("setDueSoon").checked=!!s.dueSoon;
+  if($("setWaitIn"))$("setWaitIn").checked=!!s.waitIn;
+  if($("setNotOrdered"))$("setNotOrdered").checked=!!s.notOrdered;
+  if($("setOrderedNotArrived"))$("setOrderedNotArrived").checked=!!s.orderedNotArrived;
+  if($("setStaleCount"))$("setStaleCount").checked=!!s.staleCount;
+  if($("setStaleDays"))$("setStaleDays").value=String(s.staleDays||7);
+}
+function saveReminderSettings(){
+  data.reminderSettings={
+    overdue:$("setOverdue")?$("setOverdue").checked:true,
+    dueSoon:$("setDueSoon")?$("setDueSoon").checked:true,
+    waitIn:$("setWaitIn")?$("setWaitIn").checked:true,
+    notOrdered:$("setNotOrdered")?$("setNotOrdered").checked:true,
+    orderedNotArrived:$("setOrderedNotArrived")?$("setOrderedNotArrived").checked:true,
+    staleCount:$("setStaleCount")?$("setStaleCount").checked:true,
+    staleDays:$("setStaleDays")?n($("setStaleDays").value):7
+  };
+  save();
+  renderHome();
+}
+
+function renderHome(){
+  const s=getReminderSettings();
+  const open=data.orders.filter(o=>isOpenStatus(o.status));
+  $("homeActiveCount").innerText=open.length;
+  $("homeWarnCount").innerText=getPurchaseSummary().length;
+  $("homeOrders").innerHTML=data.orders.slice().reverse().slice(0,5).map(orderCard).join("")||`<div class="empty">暂无生产单</div>`;
+
+  const todos=[];
+  const overdue=open.filter(o=>dueInfo(o).cls==="due-overdue");
+  const dueSoon=open.filter(o=>dueInfo(o).cls==="due-today");
+  const waitIn=open.filter(o=>o.status==="待入库");
+  const notOrdered=open.filter(o=>n(o.materialNotOrdered)>0);
+  const orderedNotArrived=open.filter(o=>n(o.materialOrdered)>0);
+  const pendingMats=getPurchaseSummary().length;
+  const staleDays=n(s.staleDays)||7;
+  const staleProducts=(data.products||[]).filter(p=>orderLastCountDays(p.code)>staleDays);
+
+  if(s.overdue && overdue.length)todos.push(todoHtml(`有 ${overdue.length} 张生产单已超期`,`请优先跟进交货日期和工厂进度`,"todo-overdue"));
+  if(s.dueSoon && dueSoon.length)todos.push(todoHtml(`有 ${dueSoon.length} 张生产单临近交货`,`今天或2天内需要确认进度`,"todo-warning"));
+  if(s.waitIn && waitIn.length)todos.push(todoHtml(`有 ${waitIn.length} 张生产单待入库`,`货已做完后记得点“确认成品入库”`,"todo-ok"));
+  if(s.notOrdered && notOrdered.length)todos.push(todoHtml(`有 ${notOrdered.length} 张生产单存在未下单物料`,`打开生产单，处理物料下单状态`,"todo-warning"));
+  if(s.orderedNotArrived && orderedNotArrived.length)todos.push(todoHtml(`有 ${orderedNotArrived.length} 张生产单有物料已下单未到`,`关注到货进度，避免影响生产`,"todo-warning"));
+  if((s.notOrdered||s.orderedNotArrived) && pendingMats)todos.push(todoHtml(`共有 ${pendingMats} 项待处理物料`,`包含未下单和已下单未到货物料`,"todo-warning"));
+  if(s.staleCount && staleProducts.length)todos.push(todoHtml(`有 ${staleProducts.length} 个货号超过${staleDays}天未盘点`,`卖得好的货号建议及时盘点，补货更准`,"todo-warning"));
+
+  $("todoList").innerHTML=todos.join("")||`<div class="empty">暂无待处理事项</div>`;
+}
 
 
 let pendingOrderImports=[];
@@ -2327,7 +2526,7 @@ function restoreData(){if(!confirm("导入备份会覆盖当前数据，确定�
 function resetDemo(){if(confirm("确定清空并恢复演示数据？")){localStorage.removeItem(STORAGE_KEY);data=defaultData();save();location.reload()}}
 
 function renderSelects(){["count","order","bom"].forEach(initProductSelector);renderCountForm();renderOrderForm()}
-function renderAll(){recalcOrders();renderSelects();renderHome();renderProducts();renderCountRecords();renderOrders();renderBom();renderMaterialNames();renderWarnings();renderTempSizes();renderTempColors();renderColorLibrary();renderSizeLibrary()}
+function renderAll(){recalcOrders();renderSelects();renderHome();renderProducts();renderCountRecords();renderOrders();renderBom();renderMaterialNames();renderWarnings();renderTempSizes();renderTempColors();renderColorLibrary();renderSizeLibrary();renderReminderSettings()}
 let orderListOnlyMode=false;
 
 function applyOrderPageMode(){

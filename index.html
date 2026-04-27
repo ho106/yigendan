@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0">
-<title>八方来财补货版 V1.37</title>
+<title>八方来财补货版 V1.38</title>
 <style>
 :root{--blue:#2f6df6;--green:#18a058;--orange:#ff7a1a;--red:#e5484d;--bg:#f5f6fa;--card:#fff;--text:#1f2937;--muted:#7b8494;--line:#e9edf5}
 *{box-sizing:border-box}
@@ -692,11 +692,107 @@ hr{border:0;border-top:1px solid var(--line);margin:12px 0}
   opacity:.9;
 }
 
+
+/* V1.38：物料采购状态重新排版
+   前面显示：物料、单耗、单价、总需、金额、状态、操作
+   供应商、备注放最后，需要时左右滑动查看 */
+.material-compact-table.v30{
+  width:max-content!important;
+  min-width:720px!important;
+  table-layout:fixed!important;
+  font-size:13px!important;
+}
+.material-compact-table.v30 th,
+.material-compact-table.v30 td{
+  padding:6px 3px!important;
+  line-height:1.25!important;
+  font-size:13px!important;
+  vertical-align:middle!important;
+}
+.material-compact-table.v30 th:nth-child(1),.material-compact-table.v30 td:nth-child(1){width:108px!important;text-align:left!important}
+.material-compact-table.v30 th:nth-child(2),.material-compact-table.v30 td:nth-child(2){width:50px!important}
+.material-compact-table.v30 th:nth-child(3),.material-compact-table.v30 td:nth-child(3){width:50px!important}
+.material-compact-table.v30 th:nth-child(4),.material-compact-table.v30 td:nth-child(4){width:64px!important}
+.material-compact-table.v30 th:nth-child(5),.material-compact-table.v30 td:nth-child(5){width:68px!important}
+.material-compact-table.v30 th:nth-child(6),.material-compact-table.v30 td:nth-child(6){width:58px!important}
+.material-compact-table.v30 th:nth-child(7),.material-compact-table.v30 td:nth-child(7){width:54px!important}
+.material-compact-table.v30 th:nth-child(8),.material-compact-table.v30 td:nth-child(8){width:96px!important}
+.material-compact-table.v30 th:nth-child(9),.material-compact-table.v30 td:nth-child(9){width:118px!important}
+.material-compact-table.v30 input{
+  height:32px!important;
+  min-width:0!important;
+  width:100%!important;
+  padding:4px 5px!important;
+  border-radius:8px!important;
+  font-size:13px!important;
+  text-align:center!important;
+}
+.material-compact-table.v30 .matName,
+.material-compact-table.v30 .matSupplier,
+.material-compact-table.v30 .matRemark{
+  text-align:left!important;
+}
+.material-compact-table.v30 .tag{
+  padding:4px 5px!important;
+  font-size:11px!important;
+  border-radius:8px!important;
+  white-space:nowrap!important;
+  min-width:44px!important;
+  text-align:center!important;
+}
+.material-compact-table.v30 .btn-small{
+  padding:5px 5px!important;
+  min-width:42px!important;
+  font-size:11px!important;
+  border-radius:8px!important;
+  white-space:nowrap!important;
+  margin:0!important;
+}
+.material-compact-table.v30 .num-cell{
+  font-variant-numeric:tabular-nums;
+}
+.material-read-name{
+  font-size:13px!important;
+  font-weight:800!important;
+}
+.material-card-head .title{
+  font-size:20px!important;
+}
+.material-save-btn{
+  padding:8px 10px!important;
+  font-size:13px!important;
+}
+@media(max-width:430px){
+  .material-compact-table.v30{
+    min-width:708px!important;
+    font-size:12px!important;
+  }
+  .material-compact-table.v30 th,
+  .material-compact-table.v30 td{
+    padding:5px 2px!important;
+    font-size:12px!important;
+  }
+  .material-compact-table.v30 input{
+    height:31px!important;
+    font-size:12px!important;
+    padding:3px 4px!important;
+  }
+  .material-compact-table.v30 th:nth-child(1),.material-compact-table.v30 td:nth-child(1){width:104px!important}
+  .material-compact-table.v30 th:nth-child(2),.material-compact-table.v30 td:nth-child(2){width:48px!important}
+  .material-compact-table.v30 th:nth-child(3),.material-compact-table.v30 td:nth-child(3){width:48px!important}
+  .material-compact-table.v30 th:nth-child(4),.material-compact-table.v30 td:nth-child(4){width:62px!important}
+  .material-compact-table.v30 th:nth-child(5),.material-compact-table.v30 td:nth-child(5){width:66px!important}
+  .material-compact-table.v30 th:nth-child(6),.material-compact-table.v30 td:nth-child(6){width:56px!important}
+  .material-compact-table.v30 th:nth-child(7),.material-compact-table.v30 td:nth-child(7){width:52px!important}
+  .material-compact-table.v30 th:nth-child(8),.material-compact-table.v30 td:nth-child(8){width:94px!important}
+  .material-compact-table.v30 th:nth-child(9),.material-compact-table.v30 td:nth-child(9){width:114px!important}
+}
+
 </style>
 </head>
 <body>
 <div class="app">
-  <div class="header">八方来财补货版 V1.37</div>
+  <div class="header">八方来财补货版 V1.38</div>
 
   <section id="home" class="page active">
     <div class="grid2">
@@ -1104,6 +1200,15 @@ async function handleProductImageUpload(event){
 document.addEventListener("keydown",e=>{
   if(e.key==="Escape")closeImagePreview();
 });
+
+
+function fmtNeed(v){
+  const x=n(v);
+  return Number.isInteger(x) ? String(x) : x.toFixed(1);
+}
+function fmtMoney0(v){
+  return String(Math.round(n(v)));
+}
 
 function getProduct(code){return data.products.find(p=>p.code===code)}
 function getBoms(code){return data.boms.filter(b=>b.code===code)}
@@ -2067,12 +2172,12 @@ function openOrder(id,keepScroll=false){
         <td><input class="matName" value="${esc(m.name||"")}" placeholder="物料"></td>
         <td><input class="matUsage" type="number" value="${n(m.usage)||""}" placeholder="0"></td>
         <td><input class="matPrice" type="number" value="${n(m.price)||""}" placeholder="0"></td>
-        <td>${m.totalNeed}</td>
-        <td>${m.cost}</td>
-        <td><input class="matSupplier" value="${esc(m.supplier||"")}" placeholder="-"></td>
-        <td><input class="matRemark" value="${esc(m.remark||m.spec||"")}" placeholder="备注"></td>
+        <td class="num-cell">${fmtNeed(m.totalNeed)}</td>
+        <td class="num-cell">${fmtMoney0(m.cost)}</td>
         <td><span class="tag ${m.cls}">${m.status}</span></td>
         <td>${action}</td>
+        <td><input class="matSupplier" value="${esc(m.supplier||"")}" placeholder="-"></td>
+        <td><input class="matRemark" value="${esc(m.remark||m.spec||"")}" placeholder="备注"></td>
       </tr>`;
     }
 
@@ -2080,12 +2185,12 @@ function openOrder(id,keepScroll=false){
       <td><div class="material-read-name">${esc(m.name)}</div></td>
       <td>${m.usage}</td>
       <td>${m.price}</td>
-      <td>${m.totalNeed}</td>
-      <td>${m.cost}</td>
-      <td>${esc(m.supplier||"-")}</td>
-      <td>${esc(m.remark||m.spec||"-")}</td>
+      <td class="num-cell">${fmtNeed(m.totalNeed)}</td>
+      <td class="num-cell">${fmtMoney0(m.cost)}</td>
       <td><span class="tag ${m.cls}">${m.status}</span></td>
       <td>${m.status==="已到货"?`<span class="tag ok">完成</span>`:"-"}</td>
+      <td>${esc(m.supplier||"-")}</td>
+      <td>${esc(m.remark||m.spec||"-")}</td>
     </tr>`;
   }).join("");
 
@@ -2138,7 +2243,7 @@ function openOrder(id,keepScroll=false){
     </div>
     <div class="table-wrap" style="overflow:visible">
       <table class="material-compact-table v30">
-        <tr><th>物料</th><th>单耗</th><th>单价</th><th>总需</th><th>金额</th><th>供应商</th><th>备注</th><th>状态</th><th>操作</th></tr>
+        <tr><th>物料</th><th>单耗</th><th>单价</th><th>总需</th><th>金额</th><th>状态</th><th>操作</th><th>供应商</th><th>备注</th></tr>
         ${matRows}
       </table>
     </div>
@@ -2434,7 +2539,7 @@ function renderWarnings(){
   const notOrdered=list.filter(x=>x.status==='未下单').length;
   const ordered=list.filter(x=>x.status==='已下单').length;
   if($("warningHint")) $("warningHint").innerHTML=`显示所有未下单 / 已下单未到货物料。当前：未下单 <b>${notOrdered}</b> 项，已下单未到货 <b>${ordered}</b> 项，点击物料可进入生产单详情。`;
-  $("purchaseList").innerHTML=list.map(x=>`<div class="item" onclick="openOrder('${esc(x.orderId)}')"><div class="item-head"><b>${esc(x.name)}</b><span class="tag ${matStatusClass(x.status)}">${esc(x.status)}</span></div>${esc(x.code)} ${esc(x.productName||"")} · ${esc(x.remark||"")}<br>需求：${x.need}　单价：${x.price}　金额：${x.amount}<br>供应商：${esc(x.supplier||"")}</div>`).join("")||`<div class="empty">暂无待处理物料</div>`;
+  $("purchaseList").innerHTML=list.map(x=>`<div class="item" onclick="openOrder('${esc(x.orderId)}')"><div class="item-head"><b>${esc(x.name)}</b><span class="tag ${matStatusClass(x.status)}">${esc(x.status)}</span></div>${esc(x.code)} ${esc(x.productName||"")} · ${esc(x.remark||"")}<br>需求：${fmtNeed(x.need)}　单价：${x.price}　金额：${fmtMoney0(x.amount)}<br>供应商：${esc(x.supplier||"")}</div>`).join("")||`<div class="empty">暂无待处理物料</div>`;
 }
 
 function getReminderSettings(){

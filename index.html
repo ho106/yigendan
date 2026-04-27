@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0">
-<title>八方来财补货版 V1.35</title>
+<title>八方来财补货版 V1.36</title>
 <style>
 :root{--blue:#2f6df6;--green:#18a058;--orange:#ff7a1a;--red:#e5484d;--bg:#f5f6fa;--card:#fff;--text:#1f2937;--muted:#7b8494;--line:#e9edf5}
 *{box-sizing:border-box}
@@ -561,6 +561,34 @@ hr{border:0;border-top:1px solid var(--line);margin:12px 0}
 
 /* V1.34：智能待办 + 超期提醒 + 生产单备注 */
 .todo-smart-item{background:#fafbff;border:1px solid var(--line);border-radius:14px;padding:11px 12px;margin:9px 0;line-height:1.45}
+.todo-smart-item{cursor:pointer;position:relative;padding-right:42px}
+.todo-smart-item:active{transform:scale(.995);opacity:.92}
+.todo-smart-item::after{content:"›";position:absolute;right:14px;top:50%;transform:translateY(-50%);font-size:22px;color:#9aa2b1;font-weight:900}
+.product-image-panel{display:grid;grid-template-columns:92px 1fr;gap:12px;align-items:center;margin:6px 0 12px;padding:12px;border:1px solid var(--line);border-radius:14px;background:#fafbff}
+.product-image-preview{width:92px;height:92px;border-radius:14px;border:1px solid #dbe1ea;background:#fff;display:flex;align-items:center;justify-content:center;overflow:hidden;color:#9aa2b1;font-size:13px;text-align:center}
+.product-image-preview img{width:100%;height:100%;object-fit:cover;display:block}
+.product-image-actions{display:flex;flex-direction:column;gap:8px}
+.product-image-actions input[type=file]{margin:0}
+.product-image-note{font-size:12px;color:#7b8494;line-height:1.5}
+.product-card-main{display:flex;gap:12px;align-items:flex-start}
+.product-thumb{width:72px;height:72px;border-radius:14px;object-fit:cover;border:1px solid #dbe1ea;background:#fff;flex:0 0 auto}
+.product-thumb.sm{width:64px;height:64px;border-radius:12px}
+.product-thumb.xs{width:54px;height:54px;border-radius:12px}
+.product-thumb.placeholder{display:flex;align-items:center;justify-content:center;color:#9aa2b1;font-size:12px;background:#fff}
+.product-main-info{min-width:0;flex:1}
+.order-media-wrap{display:flex;gap:12px;align-items:flex-start}
+.order-media-main{min-width:0;flex:1}
+.order-reminder-bar{display:none;margin:10px 0 0;padding:10px 12px;border-radius:12px;background:#f6f9ff;border:1px solid #d5e4ff;color:#1d4ed8;font-size:13px;font-weight:700}
+.order-reminder-bar.show{display:flex;align-items:center;justify-content:space-between;gap:10px}
+.count-jump-card{border:1px solid var(--line);border-radius:14px;background:#fafbff;padding:12px;margin:0 0 12px}
+.count-jump-list{display:flex;flex-direction:column;gap:8px;margin-top:10px}
+.count-jump-item{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:10px 12px;border-radius:12px;background:#fff;border:1px solid #dde5f0}
+.count-jump-item b{font-size:15px}
+.count-jump-item span{font-size:12px;color:#6b7280}
+.count-selected-card{display:flex;align-items:center;gap:10px;padding:10px 12px;border:1px solid var(--line);border-radius:14px;background:#fafbff;margin:0 0 12px}
+.count-selected-main{min-width:0;flex:1}
+.warning-head-note{margin-bottom:10px}
+
 .todo-smart-item .todo-title{font-weight:900;font-size:15px;margin-bottom:4px}
 .todo-smart-item .todo-desc{font-size:13px;color:#6b7280}
 .todo-overdue{border-color:#ffd1d1;background:#fff7f7}
@@ -609,7 +637,7 @@ hr{border:0;border-top:1px solid var(--line);margin:12px 0}
 </head>
 <body>
 <div class="app">
-  <div class="header">八方来财补货版 V1.35</div>
+  <div class="header">八方来财补货版 V1.36</div>
 
   <section id="home" class="page active">
     <div class="grid2">
@@ -637,6 +665,16 @@ hr{border:0;border-top:1px solid var(--line);margin:12px 0}
         <div><label>货号</label><input id="pCode" placeholder="例如 26202"></div>
         <div><label>品名</label><input id="pName" placeholder="例如 女童连衣裙"></div>
         <div class="sale-field"><label>售价</label><input id="pSalePrice" type="number" placeholder="例如 89"></div>
+      </div>
+
+      <label>产品图片（可选）</label>
+      <div class="product-image-panel">
+        <div id="productImagePreview" class="product-image-preview">暂无图片</div>
+        <div class="product-image-actions">
+          <input id="pImageFile" type="file" accept="image/*" onchange="handleProductImageUpload(event)">
+          <button type="button" class="btn-gray btn-small" onclick="clearProductImage()">删除图片</button>
+          <div class="product-image-note">支持手机相册直接上传。系统会自动压缩图片，减少卡顿和占用。</div>
+        </div>
       </div>
 
       <div class="pick-row">
@@ -713,6 +751,8 @@ hr{border:0;border-top:1px solid var(--line);margin:12px 0}
         </div>
       </div>
 
+      <div id="countJumpBox"></div>
+      <div id="countSelectedPreview"></div>
       <div id="countInputs"></div>
       <div class="sub">系统自动带出上次库存，你只改变化的码。每次盘点都会留痕，用来反推真实销量。</div>
     </div>
@@ -770,6 +810,7 @@ hr{border:0;border-top:1px solid var(--line);margin:12px 0}
           <option value="open">未入库</option><option value="all">全部</option><option value="已入库">已入库</option><option value="已取消">已取消</option>
         </select>
       </div>
+      <div id="orderReminderBar" class="order-reminder-bar"></div>
       <div id="orderList"></div>
     </div>
   </section>
@@ -795,7 +836,7 @@ hr{border:0;border-top:1px solid var(--line);margin:12px 0}
   </section>
 
   <section id="warning" class="page">
-    <div class="card"><div class="title">待处理物料</div><div id="purchaseList"></div></div>
+    <div class="card"><div class="title">待处理物料</div><div id="warningHint" class="sub warning-head-note">显示所有未下单 / 已下单未到货物料，点击可进入对应生产单详情。</div><div id="purchaseList"></div></div>
   </section>
 
   <section id="report" class="page">
@@ -879,9 +920,10 @@ function normalizeSizes(input){
 }
 function formatSizeGroup(input){return normalizeSizes(input).join("-")}
 function esc(v){return String(v??"").replace(/[&<>"']/g,s=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[s]))}
+function escAttr(v){return esc(v)}
 function today(){return new Date().toISOString().slice(0,10)}
 function defaultData(){
-  return {products:[{id:uid("P"),code:"A001",name:"女童泳衣",sizes:["90","100","110","120","130"],colors:["粉色","蓝色"],salePrice:89,otherCost:0}],
+  return {products:[{id:uid("P"),code:"A001",name:"女童泳衣",sizes:["90","100","110","120","130"],colors:["粉色","蓝色"],salePrice:89,otherCost:0,image:""}],
   boms:[{id:uid("B"),code:"A001",category:"",name:"面料",spec:"",unit:"",usage:1.2,price:15,supplier:"",remark:"粉色涤纶"},{id:uid("B"),code:"A001",category:"",name:"拉链",spec:"",unit:"",usage:1,price:1.5,supplier:"",remark:"30cm"}],
   materialStocks:[],
   finishedStocks:[],countRecords:[],finishedInRecords:[],orders:[],logs:[],
@@ -908,7 +950,7 @@ function loadData(){
     d.sizeLibrary=[...new Set(d.sizeLibrary.map(g=>formatSizeGroup(g)).filter(Boolean))];
     d.reminderSettings={overdue:true,dueSoon:true,waitIn:true,notOrdered:true,orderedNotArrived:true,staleCount:true,staleDays:7,...(d.reminderSettings||{})};
     d.reminderSettings.staleDays=n(d.reminderSettings.staleDays)||7;
-    d.products.forEach(p=>{p.sizes=normalizeSizes(p.sizes||[]);p.colors=p.colors||[];p.salePrice=n(p.salePrice);p.otherCost=n(p.otherCost);p.colors.forEach(c=>{if(c&&!d.colorLibrary.includes(c))d.colorLibrary.push(c)});if(p.sizes.length){const g=p.sizes.join("、");if(!d.sizeLibrary.includes(g))d.sizeLibrary.push(g)}});
+    d.products.forEach(p=>{p.sizes=normalizeSizes(p.sizes||[]);p.colors=p.colors||[];p.salePrice=n(p.salePrice);p.otherCost=n(p.otherCost);p.image=String(p.image||"");p.colors.forEach(c=>{if(c&&!d.colorLibrary.includes(c))d.colorLibrary.push(c)});if(p.sizes.length){const g=p.sizes.join("、");if(!d.sizeLibrary.includes(g))d.sizeLibrary.push(g)}});
     d.boms.forEach(b=>{b.remark=b.remark||b.spec||"";b.spec=b.spec||"";b.unit=b.unit||"";b.category=b.category||""});
     d.orders.forEach(o=>{o.materialStatus=o.materialStatus||{};o.note=o.note||"";});
     return d;
@@ -916,6 +958,64 @@ function loadData(){
 }
 let data=loadData();
 function save(){try{localStorage.setItem(STORAGE_KEY,JSON.stringify(data))}catch(e){alert("保存失败，请先备份数据")}}
+
+let tempProductImage="";
+let orderReminderMode="";
+let countJumpCodes=[];
+let countJumpAutoCode="";
+
+function productImageHtml(src,cls="product-thumb",label="产品图"){
+  if(!src)return `<div class="${cls} placeholder">${esc(label)}</div>`;
+  return `<img class="${cls}" src="${escAttr(src)}" alt="${escAttr(label)}">`;
+}
+function renderProductImagePreview(){
+  const box=$("productImagePreview");
+  if(!box)return;
+  box.innerHTML=tempProductImage?`<img src="${escAttr(tempProductImage)}" alt="产品图片">`:`<span>暂无图片</span>`;
+  if($("pImageFile")) $("pImageFile").value="";
+}
+function clearProductImage(){
+  tempProductImage="";
+  renderProductImagePreview();
+}
+function readFileAsDataURL(file){
+  return new Promise((resolve,reject)=>{
+    const fr=new FileReader();
+    fr.onload=()=>resolve(String(fr.result||""));
+    fr.onerror=()=>reject(new Error("read_fail"));
+    fr.readAsDataURL(file);
+  });
+}
+function compressImageDataUrl(dataUrl,maxSide=720,quality=.82){
+  return new Promise((resolve,reject)=>{
+    const img=new Image();
+    img.onload=()=>{
+      const scale=Math.min(1,maxSide/Math.max(img.width||1,img.height||1));
+      const canvas=document.createElement("canvas");
+      canvas.width=Math.max(1,Math.round((img.width||1)*scale));
+      canvas.height=Math.max(1,Math.round((img.height||1)*scale));
+      const ctx=canvas.getContext("2d");
+      if(!ctx){resolve(dataUrl);return;}
+      ctx.drawImage(img,0,0,canvas.width,canvas.height);
+      try{resolve(canvas.toDataURL("image/jpeg",quality));}
+      catch(e){resolve(dataUrl);}
+    };
+    img.onerror=()=>reject(new Error("img_fail"));
+    img.src=dataUrl;
+  });
+}
+async function handleProductImageUpload(event){
+  try{
+    const file=event&&event.target&&event.target.files&&event.target.files[0];
+    if(!file)return;
+    if(!/^image\//.test(file.type||"")) return alert("请选择图片文件");
+    const raw=await readFileAsDataURL(file);
+    tempProductImage=await compressImageDataUrl(raw,720,.82);
+    renderProductImagePreview();
+  }catch(e){
+    alert("图片处理失败，请换一张再试");
+  }
+}
 
 function getProduct(code){return data.products.find(p=>p.code===code)}
 function getBoms(code){return data.boms.filter(b=>b.code===code)}
@@ -1274,6 +1374,7 @@ function resetProductForm(){
   editingProductCode="";
   tempSizes=[];
   tempColors=[];
+  tempProductImage="";
   if($("pCode")){$("pCode").value="";$("pCode").disabled=false}
   if($("pName"))$("pName").value="";
   if($("pSalePrice"))$("pSalePrice").value="";
@@ -1283,6 +1384,7 @@ function resetProductForm(){
   document.body.classList.remove("product-editing");
   renderTempSizes();
   renderTempColors();
+  renderProductImagePreview();
 }
 function cancelProductEdit(){
   resetProductForm();
@@ -1298,6 +1400,7 @@ function editProduct(code){
   $("pSalePrice").value=p.salePrice||"";
   tempColors=(p.colors||[]).slice();
   tempSizes=(p.sizes||[]).slice();
+  tempProductImage=String(p.image||"");
   if($("productSaveBtn"))$("productSaveBtn").innerText="保存修改";
   if($("productCancelEditBtn"))$("productCancelEditBtn").style.display="inline-block";
   if($("productEditHint")){
@@ -1307,6 +1410,7 @@ function editProduct(code){
   document.body.classList.add("product-editing");
   renderTempColors();
   renderTempSizes();
+  renderProductImagePreview();
   window.scrollTo(0,0);
 }
 function addProduct(){
@@ -1325,6 +1429,7 @@ function addProduct(){
     p.colors=colors;
     p.salePrice=n($("pSalePrice").value);
     p.otherCost=0;
+    p.image=tempProductImage||"";
     data.orders.forEach(o=>{if(o.code===editingProductCode)o.productName=name});
     save();
     resetProductForm();
@@ -1334,7 +1439,7 @@ function addProduct(){
   }
 
   if(data.products.some(p=>p.code===code))return alert("货号已存在");
-  data.products.push({id:uid("P"),code,name,sizes,colors,salePrice:n($("pSalePrice").value),otherCost:0});
+  data.products.push({id:uid("P"),code,name,sizes,colors,salePrice:n($("pSalePrice").value),otherCost:0,image:tempProductImage||""});
   save();
   resetProductForm();
   renderAll();
@@ -1342,10 +1447,15 @@ function addProduct(){
 }
 function renderProducts(){
   $("productList").innerHTML=data.products.map(p=>`<div class="item">
-    <div class="item-head"><b>${esc(p.code)}</b><span class="tag gray">${esc(p.name)}</span></div>
-    颜色：${p.colors.map(esc).join("、")}<br>
-    尺码：${p.sizes.map(esc).join("-")}<br>
-    售价：${p.salePrice||0}
+    <div class="product-card-main">
+      ${productImageHtml(p.image,'product-thumb','产品图')}
+      <div class="product-main-info">
+        <div class="item-head"><b>${esc(p.code)}</b><span class="tag gray">${esc(p.name)}</span></div>
+        颜色：${p.colors.map(esc).join("、")}<br>
+        尺码：${p.sizes.map(esc).join("-")}<br>
+        售价：${p.salePrice||0}
+      </div>
+    </div>
     <div class="product-actions">
       <button class="btn-small btn-red" onclick="deleteProduct('${esc(p.code)}')">删除</button>
       <button class="btn-small btn-gray" onclick="editProduct('${esc(p.code)}')">修改</button>
@@ -1405,7 +1515,7 @@ function selectProduct(prefix,code){
   const colorInput=$(prefix+"Color");
   if(colorInput) colorInput.value=(p.colors&&p.colors.length)?p.colors[0]:"";
   initProductSelector(prefix);
-  if(prefix==="count") renderCountForm();
+  if(prefix==="count"){ countJumpAutoCode=""; renderCountForm(); }
   if(prefix==="order") renderOrderForm();
   if(prefix==="bom") renderBom();
 }
@@ -1437,14 +1547,64 @@ function renderColorOptions(prefix){
 function selectColor(prefix,color){
   const input=$(prefix+"Color");
   if(input) input.value=color;
-  if(prefix==="count") renderCountForm();
+  if(prefix==="count"){ countJumpAutoCode=""; renderCountForm(); }
   if(prefix==="order") renderOrderForm();
   if(prefix==="bom") renderBom();
 }
+function renderCountSelectedPreview(){
+  const box=$("countSelectedPreview");
+  if(!box)return;
+  const p=getProduct($("countProduct").value);
+  if(!p){box.innerHTML="";return}
+  box.innerHTML=`<div class="count-selected-card">${productImageHtml(p.image,'product-thumb xs','产品图')}<div class="count-selected-main"><b>${esc(productLabel(p))}</b><div class="sub">当前颜色：${esc($("countColor")?$("countColor").value||((p.colors||[])[0]||""):"")}</div></div></div>`;
+}
+function renderCountJumpBox(){
+  const box=$("countJumpBox");
+  if(!box)return;
+  const staleDays=n(getReminderSettings().staleDays)||7;
+  if(countJumpAutoCode){
+    const p=getProduct(countJumpAutoCode);
+    box.innerHTML=p?`<div class="count-jump-card"><div class="sub">检测到仅有 1 个货号超过 ${staleDays} 天未盘点，已自动为你选中：<b>${esc(productLabel(p))}</b></div></div>`:"";
+    return;
+  }
+  if(!countJumpCodes.length){box.innerHTML="";return;}
+  box.innerHTML=`<div class="count-jump-card"><div class="title" style="margin-bottom:6px">未盘点货号列表</div><div class="sub">以下货号超过 ${staleDays} 天未盘点，点击即可直接进入盘点。</div><div class="count-jump-list">${countJumpCodes.map(code=>{const p=getProduct(code); if(!p)return ''; return `<button class="count-jump-item" onclick="jumpToCountProduct('${esc(code)}')"><div><b>${esc(productLabel(p))}</b><span>上次盘点：${orderLastCountDays(code)>=9999?'从未盘点':orderLastCountDays(code)+' 天前'}</span></div><span class="tag warn">去盘点</span></button>`}).join('')}</div></div>`;
+}
+function jumpToCountProduct(code){
+  countJumpAutoCode="";
+  countJumpCodes=countJumpCodes.filter(x=>x!==code);
+  selectProduct('count',code);
+  const p=getProduct(code);
+  if(p && p.colors && p.colors.length && $("countColor")) $("countColor").value=p.colors[0];
+  renderCountForm();
+  renderCountJumpBox();
+}
+function openCountReminder(){
+  const staleDays=n(getReminderSettings().staleDays)||7;
+  const stale=(data.products||[]).filter(p=>orderLastCountDays(p.code)>staleDays);
+  countJumpCodes=[];
+  countJumpAutoCode="";
+  showPage('count');
+  if(!stale.length){ renderCountJumpBox(); alert('暂无超过阈值未盘点货号'); return; }
+  if(stale.length===1){
+    countJumpAutoCode=stale[0].code;
+    selectProduct('count',stale[0].code);
+    const p=getProduct(stale[0].code);
+    if(p && p.colors && p.colors.length && $("countColor")) $("countColor").value=p.colors[0];
+    renderCountForm();
+    renderCountJumpBox();
+    return;
+  }
+  countJumpCodes=stale.map(p=>p.code);
+  renderCountJumpBox();
+}
 function renderCountForm(){
   const p=getProduct($("countProduct").value);
+  renderCountJumpBox();
+  renderCountSelectedPreview();
   if(!p){$("countInputs").innerHTML="";return}
   const color=renderColorOptions("count");
+  renderCountSelectedPreview();
   if(!color){$("countInputs").innerHTML=`<div class="empty">请选择或输入颜色</div>`;return}
 
   const items=p.sizes.map(size=>`
@@ -1729,8 +1889,32 @@ function orderLastCountDays(code){
   if(!ts)return 9999;
   return Math.floor((Date.now()-n(ts))/(24*60*60*1000));
 }
-function todoHtml(title,desc,cls=""){
-  return `<div class="todo-smart-item ${cls}"><div class="todo-title">${esc(title)}</div><div class="todo-desc">${esc(desc||"")}</div></div>`;
+function getReminderOrderTitle(mode){
+  return ({overdue:'超期生产单',dueSoon:'临近交货生产单',waitIn:'待入库生产单',notOrdered:'存在未下单物料的生产单',orderedNotArrived:'存在已下单未到货物料的生产单'})[mode]||'提醒生产单';
+}
+function getReminderOrderList(mode){
+  const open=data.orders.filter(o=>isOpenStatus(o.status));
+  if(mode==='overdue') return open.filter(o=>dueInfo(o).cls==='due-overdue');
+  if(mode==='dueSoon') return open.filter(o=>dueInfo(o).cls==='due-today');
+  if(mode==='waitIn') return open.filter(o=>o.status==='待入库');
+  if(mode==='notOrdered') return open.filter(o=>n(o.materialNotOrdered)>0);
+  if(mode==='orderedNotArrived') return open.filter(o=>n(o.materialOrdered)>0);
+  return open;
+}
+function openOrderReminder(mode){
+  orderReminderMode=mode||'';
+  showOrdersListOnly();
+}
+function clearOrderReminder(){
+  orderReminderMode='';
+  renderOrders();
+}
+function openPendingMaterials(){
+  showPage('warning');
+}
+function todoHtml(title,desc,cls="",action=""){
+  const click=action?` onclick="${action}" role="button" tabindex="0" `:'';
+  return `<div class="todo-smart-item ${cls}"${click}><div class="todo-title">${esc(title)}</div><div class="todo-desc">${esc(desc||"")}</div></div>`;
 }
 
 function makeOrderId(code){
@@ -1747,20 +1931,26 @@ function orderDisplayId(o){
 }
 
 function createOrder(){const p=getProduct($("orderProduct").value),color=$("orderColor").value.trim();if(!p||!color)return alert("请选择货号和颜色");const qtyMap={};document.querySelectorAll(".orderQty").forEach(i=>qtyMap[i.dataset.size]=n(i.value));const total=Object.values(qtyMap).reduce((a,b)=>a+n(b),0);if(total<=0)return alert("请填写下单数量");if(!getBoms(p.code).length)return alert("该货号还没有BOM，请先录入BOM");const order={id:makeOrderId(p.code),code:p.code,productName:p.name,colorQty:{[color]:qtyMap},status:"待生产",created:today(),dueDate:$("orderDue").value||"",bomSnapshot:snapshotBoms(p.code),materialStatus:{},note:""};data.orders.push(calcOrder(order));save();renderAll();alert("生产指令单已生成");showPage("orders")}
-function renderOrders(){const f=$("orderFilter").value;let list=data.orders.slice().reverse();if(f==="open")list=list.filter(o=>isOpenStatus(o.status));else if(f!=="all")list=list.filter(o=>o.status===f);$("orderList").innerHTML=list.map(orderCard).join("")||`<div class="empty">暂无生产单</div>`}
+function renderOrders(){const f=$("orderFilter").value;let list=data.orders.slice().reverse();if(f==="open")list=list.filter(o=>isOpenStatus(o.status));else if(f!=="all")list=list.filter(o=>o.status===f);if(orderReminderMode){const ids=new Set(getReminderOrderList(orderReminderMode).map(o=>o.id));list=list.filter(o=>ids.has(o.id));}const bar=$("orderReminderBar"); if(bar){ if(orderReminderMode){ bar.className='order-reminder-bar show'; bar.innerHTML=`<span>当前查看：${esc(getReminderOrderTitle(orderReminderMode))}（${list.length}张）</span><button class="btn-small btn-gray" onclick="clearOrderReminder()">清除</button>`; } else { bar.className='order-reminder-bar'; bar.innerHTML=''; } } $("orderList").innerHTML=list.map(orderCard).join("")||`<div class="empty">暂无生产单</div>`}
 function orderStatusTag(o){if(o.status==="已入库")return`<span class="tag ok">已入库</span>`;if(o.status==="已取消")return`<span class="tag gray">已取消</span>`;return`<span class="tag ${o.warningCount?'warn':'ok'}">${esc(o.status||"待生产")}</span>`}
 function orderCard(o){
   const mat=o.materialReady?"物料已齐套":`未下单${o.materialNotOrdered||0}项　已下单${o.materialOrdered||0}项`;
   const due=dueInfo(o);
   const note=o.note?`<div class="note-preview">备注：${esc(o.note).slice(0,60)}</div>`:"";
+  const p=getProduct(o.code)||{};
   return`<div class="order-list-item" onclick="openOrder('${esc(o.id)}')">
-  <div class="item-head"><div class="order-list-id">${orderDisplayId(o)}</div>${orderStatusTag(o)}</div>
-  <div class="order-list-main">${esc(o.code)} ${esc(o.productName||o.product_name||"")} · ${o.totalQty||0}件</div>
-  <div class="order-list-money">成本：${o.totalCost||0}　预计利润：${o.totalProfit||0}　毛利率：${o.margin||0}%</div>
-  ${due.text?`<div class="due-line ${due.cls}">${esc(due.text)}</div>`:""}
-  ${note}
-  <div class="progress"><div class="bar" style="width:${o.readyRate||0}%"></div></div>
-  <div class="order-list-bottom"><span>${mat}</span><span>到货率：${o.readyRate||0}%</span></div>
+  <div class="order-media-wrap">
+    ${productImageHtml(p.image,'product-thumb sm','产品图')}
+    <div class="order-media-main">
+      <div class="item-head"><div class="order-list-id">${orderDisplayId(o)}</div>${orderStatusTag(o)}</div>
+      <div class="order-list-main">${esc(o.code)} ${esc(o.productName||o.product_name||"")} · ${o.totalQty||0}件</div>
+      <div class="order-list-money">成本：${o.totalCost||0}　预计利润：${o.totalProfit||0}　毛利率：${o.margin||0}%</div>
+      ${due.text?`<div class="due-line ${due.cls}">${esc(due.text)}</div>`:""}
+      ${note}
+      <div class="progress"><div class="bar" style="width:${o.readyRate||0}%"></div></div>
+      <div class="order-list-bottom"><span>${mat}</span><span>到货率：${o.readyRate||0}%</span></div>
+    </div>
+  </div>
 </div>`}
 function openOrder(id,keepScroll=false){
   const savedScroll=window.scrollY||document.documentElement.scrollTop||0;
@@ -1816,7 +2006,7 @@ function openOrder(id,keepScroll=false){
 
   $("detailBox").innerHTML=`<div class="card detail-summary">
     <div class="title">${esc(o.id)} <button class="btn-small btn-gray" onclick="showPage('orders')">返回</button></div>
-    <div>${esc(o.code)} - ${esc(o.productName||"")} · ${o.totalQty||0}件　${orderStatusTag(o)}</div>
+    <div class="count-selected-card" style="margin-top:2px">${productImageHtml((getProduct(o.code)||{}).image,'product-thumb sm','产品图')}<div class="count-selected-main"><div><b>${esc(o.code)} - ${esc(o.productName||"")}</b></div><div class="sub">数量：${o.totalQty||0} 件</div></div><div>${orderStatusTag(o)}</div></div>
     <div style="margin-top:6px">${materialSummary}</div>
     ${due.text?`<div class="due-line ${due.cls}">${esc(due.text)}</div>`:""}
     <div class="detail-money-grid">
@@ -2153,7 +2343,10 @@ function getPurchaseSummary(){
 }
 function renderWarnings(){
   const list=getPurchaseSummary();
-  $("purchaseList").innerHTML=list.map(x=>`<div class="item"><div class="item-head"><b>${esc(x.name)}</b><span class="tag ${matStatusClass(x.status)}">${esc(x.status)}</span></div>${esc(x.code)} ${esc(x.productName||"")} · ${esc(x.remark||"")}<br>需求：${x.need}　单价：${x.price}　金额：${x.amount}<br>供应商：${esc(x.supplier||"")}</div>`).join("")||`<div class="empty">暂无待处理物料</div>`;
+  const notOrdered=list.filter(x=>x.status==='未下单').length;
+  const ordered=list.filter(x=>x.status==='已下单').length;
+  if($("warningHint")) $("warningHint").innerHTML=`显示所有未下单 / 已下单未到货物料。当前：未下单 <b>${notOrdered}</b> 项，已下单未到货 <b>${ordered}</b> 项，点击物料可进入生产单详情。`;
+  $("purchaseList").innerHTML=list.map(x=>`<div class="item" onclick="openOrder('${esc(x.orderId)}')"><div class="item-head"><b>${esc(x.name)}</b><span class="tag ${matStatusClass(x.status)}">${esc(x.status)}</span></div>${esc(x.code)} ${esc(x.productName||"")} · ${esc(x.remark||"")}<br>需求：${x.need}　单价：${x.price}　金额：${x.amount}<br>供应商：${esc(x.supplier||"")}</div>`).join("")||`<div class="empty">暂无待处理物料</div>`;
 }
 
 function getReminderSettings(){
@@ -2203,13 +2396,13 @@ function renderHome(){
   const staleDays=n(s.staleDays)||7;
   const staleProducts=(data.products||[]).filter(p=>orderLastCountDays(p.code)>staleDays);
 
-  if(s.overdue && overdue.length)todos.push(todoHtml(`有 ${overdue.length} 张生产单已超期`,`请优先跟进交货日期和工厂进度`,"todo-overdue"));
-  if(s.dueSoon && dueSoon.length)todos.push(todoHtml(`有 ${dueSoon.length} 张生产单临近交货`,`今天或2天内需要确认进度`,"todo-warning"));
-  if(s.waitIn && waitIn.length)todos.push(todoHtml(`有 ${waitIn.length} 张生产单待入库`,`货已做完后记得点“确认成品入库”`,"todo-ok"));
-  if(s.notOrdered && notOrdered.length)todos.push(todoHtml(`有 ${notOrdered.length} 张生产单存在未下单物料`,`打开生产单，处理物料下单状态`,"todo-warning"));
-  if(s.orderedNotArrived && orderedNotArrived.length)todos.push(todoHtml(`有 ${orderedNotArrived.length} 张生产单有物料已下单未到`,`关注到货进度，避免影响生产`,"todo-warning"));
-  if((s.notOrdered||s.orderedNotArrived) && pendingMats)todos.push(todoHtml(`共有 ${pendingMats} 项待处理物料`,`包含未下单和已下单未到货物料`,"todo-warning"));
-  if(s.staleCount && staleProducts.length)todos.push(todoHtml(`有 ${staleProducts.length} 个货号超过${staleDays}天未盘点`,`卖得好的货号建议及时盘点，补货更准`,"todo-warning"));
+  if(s.overdue && overdue.length)todos.push(todoHtml(`有 ${overdue.length} 张生产单已超期`,`请优先跟进交货日期和工厂进度`,"todo-overdue","openOrderReminder('overdue')"));
+  if(s.dueSoon && dueSoon.length)todos.push(todoHtml(`有 ${dueSoon.length} 张生产单临近交货`,`今天或2天内需要确认进度`,"todo-warning","openOrderReminder('dueSoon')"));
+  if(s.waitIn && waitIn.length)todos.push(todoHtml(`有 ${waitIn.length} 张生产单待入库`,`货已做完后记得点“确认成品入库”`,"todo-ok","openOrderReminder('waitIn')"));
+  if(s.notOrdered && notOrdered.length)todos.push(todoHtml(`有 ${notOrdered.length} 张生产单存在未下单物料`,`打开生产单，处理物料下单状态`,"todo-warning","openOrderReminder('notOrdered')"));
+  if(s.orderedNotArrived && orderedNotArrived.length)todos.push(todoHtml(`有 ${orderedNotArrived.length} 张生产单有物料已下单未到`,`关注到货进度，避免影响生产`,"todo-warning","openOrderReminder('orderedNotArrived')"));
+  if((s.notOrdered||s.orderedNotArrived) && pendingMats)todos.push(todoHtml(`共有 ${pendingMats} 项待处理物料`,`包含未下单和已下单未到货物料`,"todo-warning","openPendingMaterials()"));
+  if(s.staleCount && staleProducts.length)todos.push(todoHtml(`有 ${staleProducts.length} 个货号超过${staleDays}天未盘点`,`卖得好的货号建议及时盘点，补货更准`,"todo-warning","openCountReminder()"));
 
   $("todoList").innerHTML=todos.join("")||`<div class="empty">暂无待处理事项</div>`;
 }
@@ -2525,14 +2718,14 @@ function backupData(){$("backupBox").value=JSON.stringify(data);$("backupBox").s
 function restoreData(){if(!confirm("导入备份会覆盖当前数据，确定继续？"))return;try{const obj=JSON.parse($("backupBox").value);if(!obj.products||!obj.boms)throw new Error();data=obj;save();renderAll();alert("导入成功")}catch(e){alert("导入失败，格式不对")}}
 function resetDemo(){if(confirm("确定清空并恢复演示数据？")){localStorage.removeItem(STORAGE_KEY);data=defaultData();save();location.reload()}}
 
-function renderSelects(){["count","order","bom"].forEach(initProductSelector);renderCountForm();renderOrderForm()}
-function renderAll(){recalcOrders();renderSelects();renderHome();renderProducts();renderCountRecords();renderOrders();renderBom();renderMaterialNames();renderWarnings();renderTempSizes();renderTempColors();renderColorLibrary();renderSizeLibrary();renderReminderSettings()}
+function renderSelects(){["count","order","bom"].forEach(initProductSelector);renderCountForm();renderOrderForm();renderProductImagePreview()}
+function renderAll(){recalcOrders();renderSelects();renderHome();renderProducts();renderCountRecords();renderOrders();renderBom();renderMaterialNames();renderWarnings();renderTempSizes();renderTempColors();renderColorLibrary();renderSizeLibrary();renderReminderSettings();renderCountJumpBox();renderCountSelectedPreview();renderProductImagePreview()}
 let orderListOnlyMode=false;
 
 function applyOrderPageMode(){
   const card=$("orderCreateCard");
   if(card) card.style.display=orderListOnlyMode ? "none" : "block";
-  if($("orderFilter") && orderListOnlyMode) $("orderFilter").value="open";
+  if($("orderFilter") && orderListOnlyMode && !orderReminderMode) $("orderFilter").value="open";
 }
 
 function showOrdersListOnly(){
@@ -2542,11 +2735,13 @@ function showOrdersListOnly(){
 
 function showOrdersFull(){
   orderListOnlyMode=false;
+  orderReminderMode="";
   showPage("orders");
 }
 
 function showPage(id,keepScroll=false){
   if(id!=="orders") orderListOnlyMode=false;
+  if(id!=="orders" && id!=="detail") orderReminderMode="";
   if(!["product","colorLib","sizeLib"].includes(id)){tempSizes=[];tempColors=[]}
   document.querySelectorAll(".page").forEach(p=>p.classList.remove("active"));
   $(id).classList.add("active");

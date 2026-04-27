@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0">
-<title>八方来财补货版 V1.41</title>
+<title>八方来财补货版 V1.42</title>
 <style>
 :root{--blue:#2f6df6;--green:#18a058;--orange:#ff7a1a;--red:#e5484d;--bg:#f5f6fa;--card:#fff;--text:#1f2937;--muted:#7b8494;--line:#e9edf5}
 *{box-sizing:border-box}
@@ -906,11 +906,60 @@ hr{border:0;border-top:1px solid var(--line);margin:12px 0}
   }
 }
 
+
+/* V1.42：物料票据图片列
+   供应商、备注、票据放到最后；票据只保存到当前生产单，不同步BOM */
+.material-compact-table.v30{
+  width:max-content!important;
+  min-width:620px!important;
+  table-layout:fixed!important;
+}
+.material-compact-table.v30 th:nth-child(1),.material-compact-table.v30 td:nth-child(1){width:72px!important;text-align:left!important}
+.material-compact-table.v30 th:nth-child(2),.material-compact-table.v30 td:nth-child(2){width:39px!important}
+.material-compact-table.v30 th:nth-child(3),.material-compact-table.v30 td:nth-child(3){width:39px!important}
+.material-compact-table.v30 th:nth-child(4),.material-compact-table.v30 td:nth-child(4){width:49px!important}
+.material-compact-table.v30 th:nth-child(5),.material-compact-table.v30 td:nth-child(5){width:49px!important}
+.material-compact-table.v30 th:nth-child(6),.material-compact-table.v30 td:nth-child(6){width:49px!important}
+.material-compact-table.v30 th:nth-child(7),.material-compact-table.v30 td:nth-child(7){width:40px!important}
+.material-compact-table.v30 th:nth-child(8),.material-compact-table.v30 td:nth-child(8){width:86px!important}
+.material-compact-table.v30 th:nth-child(9),.material-compact-table.v30 td:nth-child(9){width:116px!important}
+.material-compact-table.v30 th:nth-child(10),.material-compact-table.v30 td:nth-child(10){width:82px!important}
+.receipt-actions{
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  gap:3px;
+  flex-wrap:nowrap;
+}
+.receipt-actions .btn-small,
+.receipt-upload-btn{
+  margin:0!important;
+  white-space:nowrap!important;
+}
+.receipt-view-btn{
+  background:#eaf2ff!important;
+  color:#2563eb!important;
+  border:1px solid #bdd4ff!important;
+}
+.receipt-mini-btn{
+  min-width:28px!important;
+  padding-left:3px!important;
+  padding-right:3px!important;
+}
+.receipt-upload-btn{
+  min-width:42px!important;
+  padding-left:4px!important;
+  padding-right:4px!important;
+}
+.material-scroll-wrap::after{
+  content:"供应商 / 备注 / 票据 可左右滑动查看";
+}
+
 </style>
 </head>
 <body>
 <div class="app">
-  <div class="header">八方来财补货版 V1.41</div>
+  <div class="header">八方来财补货版 V1.42</div>
 
   <section id="home" class="page active">
     <div class="grid2">
@@ -1245,7 +1294,7 @@ function loadData(){
     }
     d.products.forEach(p=>{p.sizes=normalizeSizes(p.sizes||[]);p.colors=p.colors||[];p.salePrice=n(p.salePrice);p.otherCost=n(p.otherCost);p.image=String(p.image||"");p.colors.forEach(c=>{if(c&&!d.colorLibrary.includes(c))d.colorLibrary.push(c)});if(p.sizes.length){const g=p.sizes.join("、");if(!d.sizeLibrary.includes(g))d.sizeLibrary.push(g)}});
     d.boms.forEach(b=>{b.remark=b.remark||b.spec||"";b.spec=b.spec||"";b.unit=b.unit||"";b.category=b.category||""});
-    d.orders.forEach(o=>{o.materialStatus=o.materialStatus||{};o.note=o.note||"";});
+    d.orders.forEach(o=>{o.materialStatus=o.materialStatus||{};o.materialReceipts=o.materialReceipts||{};o.note=o.note||"";});
     return d;
   }catch(e){alert("本地数据损坏，已加载演示数据");return defaultData();}
 }
@@ -1288,6 +1337,71 @@ function clearProductImage(){
   tempProductImage="";
   renderProductImagePreview();
 }
+
+function receiptKeyFromMaterial(m){
+  return String(m.id||m.key||matKeyFromBom(m)||"");
+}
+function getOrderReceipt(orderId,receiptKey){
+  const o=data.orders.find(x=>x.id===orderId);
+  return o&&o.materialReceipts?o.materialReceipts[receiptKey]:"";
+}
+function materialReceiptHtml(orderId,receiptKey,src,canEdit=true){
+  const dataAttrs=`data-order-id="${escAttr(orderId)}" data-receipt-key="${escAttr(receiptKey)}"`;
+  if(src){
+    return `<div class="receipt-actions">
+      <button class="btn-small receipt-view-btn" ${dataAttrs} onclick="openMaterialReceiptFromBtn(event,this)">查看</button>
+      ${canEdit?`<button class="btn-small btn-gray receipt-mini-btn" ${dataAttrs} onclick="uploadMaterialReceiptFromBtn(event,this)">换</button>
+      <button class="btn-small btn-gray receipt-mini-btn" ${dataAttrs} onclick="deleteMaterialReceiptFromBtn(event,this)">删</button>`:""}
+    </div>`;
+  }
+  return canEdit
+    ? `<button class="btn-small btn-gray receipt-upload-btn" ${dataAttrs} onclick="uploadMaterialReceiptFromBtn(event,this)">上传</button>`
+    : `<span class="sub">无</span>`;
+}
+function openMaterialReceiptFromBtn(event,btn){
+  if(event){event.preventDefault();event.stopPropagation();}
+  const src=getOrderReceipt(btn.dataset.orderId,btn.dataset.receiptKey);
+  if(src)openImagePreview(event,src);
+}
+function uploadMaterialReceiptFromBtn(event,btn){
+  if(event){event.preventDefault();event.stopPropagation();}
+  uploadMaterialReceipt(btn.dataset.orderId,btn.dataset.receiptKey);
+}
+function deleteMaterialReceiptFromBtn(event,btn){
+  if(event){event.preventDefault();event.stopPropagation();}
+  const orderId=btn.dataset.orderId, receiptKey=btn.dataset.receiptKey;
+  const o=data.orders.find(x=>x.id===orderId);
+  if(!o)return;
+  if(!confirm("确定删除这张票据图片？"))return;
+  o.materialReceipts=o.materialReceipts||{};
+  delete o.materialReceipts[receiptKey];
+  save();
+  openOrder(orderId,true);
+}
+function uploadMaterialReceipt(orderId,receiptKey){
+  const o=data.orders.find(x=>x.id===orderId);
+  if(!o)return;
+  const input=document.createElement("input");
+  input.type="file";
+  input.accept="image/*";
+  input.onchange=async ()=>{
+    try{
+      const file=input.files&&input.files[0];
+      if(!file)return;
+      if(!/^image\//.test(file.type||""))return alert("请选择图片文件");
+      const raw=await readFileAsDataURL(file);
+      const img=await compressImageDataUrl(raw,1000,.82);
+      o.materialReceipts=o.materialReceipts||{};
+      o.materialReceipts[receiptKey]=img;
+      save();
+      openOrder(orderId,true);
+    }catch(e){
+      alert("票据图片处理失败，请换一张再试");
+    }
+  };
+  input.click();
+}
+
 function readFileAsDataURL(file){
   return new Promise((resolve,reject)=>{
     const fr=new FileReader();
@@ -2292,6 +2406,7 @@ function orderCard(o){
 function openOrder(id,keepScroll=false){
   const savedScroll=window.scrollY||document.documentElement.scrollTop||0;
   const o=data.orders.find(x=>x.id===id);if(!o)return;
+  o.materialReceipts=o.materialReceipts||{};
 
   const qtyRows=Object.entries(o.colorQty||{}).map(([color,map])=>{
     const sizes=Object.keys(map);
@@ -2304,7 +2419,11 @@ function openOrder(id,keepScroll=false){
   }).join("");
 
   const canEditMaterial=isOpenStatus(o.status);
+  const canEditReceipt=o.status!=="已取消";
   const matRows=(o.materials||[]).map(m=>{
+    const receiptKey=receiptKeyFromMaterial(m);
+    const receiptImg=o.materialReceipts&&o.materialReceipts[receiptKey];
+    const receiptCell=materialReceiptHtml(o.id,receiptKey,receiptImg,canEditReceipt);
     const action=m.status==="未下单"
       ? `<button class="btn-small btn-gray" onclick="setMaterialStatus('${esc(o.id)}','${esc(m.key)}','已下单')">下单</button>`
       : m.status==="已下单"
@@ -2322,6 +2441,7 @@ function openOrder(id,keepScroll=false){
         <td>${action}</td>
         <td><input class="matSupplier" value="${esc(m.supplier||"")}" placeholder="-"></td>
         <td><input class="matRemark" value="${esc(m.remark||m.spec||"")}" placeholder="备注"></td>
+        <td>${receiptCell}</td>
       </tr>`;
     }
 
@@ -2335,6 +2455,7 @@ function openOrder(id,keepScroll=false){
       <td>${m.status==="已到货"?`<span class="tag ok">完成</span>`:"-"}</td>
       <td>${esc(m.supplier||"-")}</td>
       <td>${esc(m.remark||m.spec||"-")}</td>
+      <td>${receiptCell}</td>
     </tr>`;
   }).join("");
 
@@ -2389,7 +2510,7 @@ function openOrder(id,keepScroll=false){
     </div>
     <div class="table-wrap material-scroll-wrap">
       <table class="material-compact-table v30">
-        <tr><th>物料</th><th>单耗</th><th>单价</th><th>总需</th><th>金额</th><th>状态</th><th>操作</th><th>供应商</th><th>备注</th></tr>
+        <tr><th>物料</th><th>单耗</th><th>单价</th><th>总需</th><th>金额</th><th>状态</th><th>操作</th><th>供应商</th><th>备注</th><th>票据</th></tr>
         ${matRows}
       </table>
     </div>

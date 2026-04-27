@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0">
-<title>八方来财补货版 V1.38</title>
+<title>八方来财补货版 V1.39</title>
 <style>
 :root{--blue:#2f6df6;--green:#18a058;--orange:#ff7a1a;--red:#e5484d;--bg:#f5f6fa;--card:#fff;--text:#1f2937;--muted:#7b8494;--line:#e9edf5}
 *{box-sizing:border-box}
@@ -788,11 +788,129 @@ hr{border:0;border-top:1px solid var(--line);margin:12px 0}
   .material-compact-table.v30 th:nth-child(9),.material-compact-table.v30 td:nth-child(9){width:114px!important}
 }
 
+
+/* V1.39：物料采购状态再压缩，默认一屏露出状态和操作 */
+.material-scroll-wrap{
+  overflow-x:auto!important;
+  overflow-y:visible!important;
+  -webkit-overflow-scrolling:touch;
+  padding-bottom:2px;
+}
+.material-compact-table.v30{
+  width:max-content!important;
+  min-width:552px!important;
+  table-layout:fixed!important;
+  font-size:12px!important;
+}
+.material-compact-table.v30 th,
+.material-compact-table.v30 td{
+  padding:5px 1px!important;
+  line-height:1.2!important;
+  font-size:12px!important;
+  vertical-align:middle!important;
+}
+.material-compact-table.v30 th:nth-child(1),.material-compact-table.v30 td:nth-child(1){width:74px!important;text-align:left!important}
+.material-compact-table.v30 th:nth-child(2),.material-compact-table.v30 td:nth-child(2){width:40px!important}
+.material-compact-table.v30 th:nth-child(3),.material-compact-table.v30 td:nth-child(3){width:40px!important}
+.material-compact-table.v30 th:nth-child(4),.material-compact-table.v30 td:nth-child(4){width:50px!important}
+.material-compact-table.v30 th:nth-child(5),.material-compact-table.v30 td:nth-child(5){width:50px!important}
+.material-compact-table.v30 th:nth-child(6),.material-compact-table.v30 td:nth-child(6){width:50px!important}
+.material-compact-table.v30 th:nth-child(7),.material-compact-table.v30 td:nth-child(7){width:42px!important}
+.material-compact-table.v30 th:nth-child(8),.material-compact-table.v30 td:nth-child(8){width:86px!important}
+.material-compact-table.v30 th:nth-child(9),.material-compact-table.v30 td:nth-child(9){width:120px!important}
+.material-compact-table.v30 input{
+  height:29px!important;
+  min-width:0!important;
+  width:100%!important;
+  padding:2px 3px!important;
+  border-radius:8px!important;
+  font-size:12px!important;
+  text-align:center!important;
+}
+.material-compact-table.v30 .matName,
+.material-compact-table.v30 .matSupplier,
+.material-compact-table.v30 .matRemark{
+  text-align:left!important;
+}
+.material-compact-table.v30 .tag{
+  padding:4px 3px!important;
+  font-size:10.5px!important;
+  border-radius:8px!important;
+  white-space:nowrap!important;
+  min-width:42px!important;
+  text-align:center!important;
+}
+.material-compact-table.v30 .btn-small{
+  padding:5px 4px!important;
+  min-width:36px!important;
+  font-size:10.5px!important;
+  border-radius:8px!important;
+  white-space:nowrap!important;
+  margin:0!important;
+}
+.material-compact-table.v30 .num-cell{
+  font-variant-numeric:tabular-nums;
+}
+.material-read-name{
+  font-size:12px!important;
+  font-weight:800!important;
+}
+.material-card-head .title{
+  font-size:20px!important;
+}
+.material-save-btn{
+  padding:8px 10px!important;
+  font-size:13px!important;
+}
+.material-scroll-wrap::after{
+  content:"供应商/备注可左右滑动查看";
+  display:block;
+  text-align:center;
+  color:#9aa2b1;
+  font-size:11px;
+  padding-top:6px;
+}
+@media(max-width:430px){
+  .material-compact-table.v30{
+    min-width:548px!important;
+    font-size:11.5px!important;
+  }
+  .material-compact-table.v30 th,
+  .material-compact-table.v30 td{
+    padding:5px 1px!important;
+    font-size:11.5px!important;
+  }
+  .material-compact-table.v30 input{
+    height:28px!important;
+    font-size:11.5px!important;
+    padding:2px 3px!important;
+  }
+  .material-compact-table.v30 th:nth-child(1),.material-compact-table.v30 td:nth-child(1){width:72px!important}
+  .material-compact-table.v30 th:nth-child(2),.material-compact-table.v30 td:nth-child(2){width:39px!important}
+  .material-compact-table.v30 th:nth-child(3),.material-compact-table.v30 td:nth-child(3){width:39px!important}
+  .material-compact-table.v30 th:nth-child(4),.material-compact-table.v30 td:nth-child(4){width:49px!important}
+  .material-compact-table.v30 th:nth-child(5),.material-compact-table.v30 td:nth-child(5){width:49px!important}
+  .material-compact-table.v30 th:nth-child(6),.material-compact-table.v30 td:nth-child(6){width:49px!important}
+  .material-compact-table.v30 th:nth-child(7),.material-compact-table.v30 td:nth-child(7){width:40px!important}
+  .material-compact-table.v30 th:nth-child(8),.material-compact-table.v30 td:nth-child(8){width:86px!important}
+  .material-compact-table.v30 th:nth-child(9),.material-compact-table.v30 td:nth-child(9){width:125px!important}
+  .material-compact-table.v30 .tag{
+    font-size:10px!important;
+    min-width:40px!important;
+    padding:4px 2px!important;
+  }
+  .material-compact-table.v30 .btn-small{
+    font-size:10px!important;
+    min-width:34px!important;
+    padding:5px 3px!important;
+  }
+}
+
 </style>
 </head>
 <body>
 <div class="app">
-  <div class="header">八方来财补货版 V1.38</div>
+  <div class="header">八方来财补货版 V1.39</div>
 
   <section id="home" class="page active">
     <div class="grid2">
@@ -1203,8 +1321,7 @@ document.addEventListener("keydown",e=>{
 
 
 function fmtNeed(v){
-  const x=n(v);
-  return Number.isInteger(x) ? String(x) : x.toFixed(1);
+  return n(v).toFixed(1);
 }
 function fmtMoney0(v){
   return String(Math.round(n(v)));
@@ -2241,7 +2358,7 @@ function openOrder(id,keepScroll=false){
       <div class="title">物料采购状态</div>
       ${canEditMaterial?`<button class="btn-small btn-green material-save-btn" onclick="saveOrderMaterialEdits('${esc(o.id)}')">保存物料修改</button>`:`<span class="tag gray">已锁定</span>`}
     </div>
-    <div class="table-wrap" style="overflow:visible">
+    <div class="table-wrap material-scroll-wrap">
       <table class="material-compact-table v30">
         <tr><th>物料</th><th>单耗</th><th>单价</th><th>总需</th><th>金额</th><th>状态</th><th>操作</th><th>供应商</th><th>备注</th></tr>
         ${matRows}
